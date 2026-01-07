@@ -1,0 +1,28 @@
+{
+  "short_name": "NomadFlow",
+  "name": "NomadFlow: Imigração Espanha",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/9195/9195682.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/9195/9195682.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#FFFFFF",
+  "background_color": "#FFFFFF",
+  "orientation": "portrait",
+  "scope": "/",
+  "description": "O guia definitivo e seguro para nômades digitais brasileiros na Espanha.",
+  "categories": [
+    "productivity",
+    "finance",
+    "travel"
+  ]
+}

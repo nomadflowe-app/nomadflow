@@ -1,0 +1,1 @@
+components/AdminArea.tsx(485,1): error TS1005: '}' expected.

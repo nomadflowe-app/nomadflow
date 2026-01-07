@@ -1,0 +1,11 @@
+components/App.tsx(11,23): error TS2307: Cannot find module './components/Dashboard' or its corresponding type declarations.
+components/App.tsx(12,20): error TS2307: Cannot find module './components/Guides' or its corresponding type declarations.
+components/App.tsx(13,25): error TS2307: Cannot find module './components/MembersArea' or its corresponding type declarations.
+components/App.tsx(14,21): error TS2307: Cannot find module './components/Profile' or its corresponding type declarations.
+components/App.tsx(15,25): error TS2307: Cannot find module './components/LandingPage' or its corresponding type declarations.
+components/App.tsx(16,24): error TS2307: Cannot find module './components/Onboarding' or its corresponding type declarations.
+components/App.tsx(17,25): error TS2307: Cannot find module './components/MobileGuard' or its corresponding type declarations.
+components/App.tsx(18,23): error TS2307: Cannot find module './components/AuthModal' or its corresponding type declarations.
+components/App.tsx(19,27): error TS2307: Cannot find module './components/DatabaseSetup' or its corresponding type declarations.
+components/App.tsx(20,39): error TS2307: Cannot find module './types' or its corresponding type declarations.
+components/App.tsx(21,75): error TS2307: Cannot find module './lib/supabase' or its corresponding type declarations.

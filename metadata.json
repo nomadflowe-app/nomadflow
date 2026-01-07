@@ -1,0 +1,7 @@
+{
+  "name": "NomadFlow - Digital Nomad Immigration SaaS",
+  "description": "A premium SaaS platform designed for digital nomads to manage their immigration process, financial goals, and essential visa documentation with a navy blue aesthetic.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
