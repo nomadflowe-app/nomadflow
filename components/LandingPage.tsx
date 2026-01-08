@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Globe, ShieldCheck, Zap, ArrowRight, CheckCircle, Plane, Star, Users, Calculator, PiggyBank, FileCheck, Luggage, Newspaper, GraduationCap, MessagesSquare, Headset } from 'lucide-react';
+import { Globe, ShieldCheck, Zap, ArrowRight, CheckCircle, Plane, Star, Users, Calculator, PiggyBank, FileCheck, Luggage, Newspaper, GraduationCap, MessagesSquare, Headset, Instagram, Facebook, Linkedin } from 'lucide-react';
 
 interface LandingPageProps {
   onOpenAuth: () => void;
@@ -21,8 +21,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth }) => {
       {/* Navbar Transparente */}
       <nav className="fixed top-0 w-full z-50 px-6 md:px-12 py-6 flex justify-between items-center backdrop-blur-sm">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-brand-yellow rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(255,204,0,0.3)]">
-            <Plane className="w-5 h-5 text-navy-950 fill-navy-950" />
+          <div className="w-12 h-12 flex items-center justify-center">
+            <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
           </div>
           <span className="text-xl font-black tracking-tighter text-white">Nomad<span className="text-brand-yellow">Flow</span></span>
         </div>
@@ -35,7 +35,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth }) => {
       </nav>
 
       {/* Hero Section Split */}
-      <section className="relative z-10 min-h-screen flex items-center pt-20 px-6 md:px-12 max-w-7xl mx-auto">
+      <section className="relative z-10 min-h-screen flex items-center pt-40 md:pt-48 px-6 md:px-12 max-w-7xl mx-auto">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center w-full">
 
           {/* Left: Copy & CTA */}
@@ -50,9 +50,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth }) => {
               <span className="text-[10px] font-black text-brand-yellow uppercase tracking-[0.2em]">Agora disponível para Brasileiros</span>
             </div>
 
-            <h1 className="text-5xl md:text-7xl font-black text-white leading-[0.95] tracking-tighter">
-              Organize sua jornada rumo ao <br className="hidden lg:block" />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-yellow via-white to-brand-yellow bg-[200%_auto] animate-shine">Visto de Nômade Digital na Espanha.</span>
+            <h1 className="text-4xl md:text-5xl lg:text-7xl font-black text-white leading-[1.1] tracking-tighter">
+              Organize sua <br />
+              jornada rumo ao <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-yellow via-white to-brand-yellow bg-[200%_auto] animate-shine">Visto de</span> <br />
+              Nômade <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-yellow via-white to-brand-yellow bg-[200%_auto] animate-shine">Digital na</span> <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-yellow via-white to-brand-yellow bg-[200%_auto] animate-shine">Espanha.</span>
             </h1>
 
             <p className="text-lg text-blue-100/80 font-medium leading-relaxed max-w-xl mx-auto lg:mx-0">
@@ -70,66 +74,20 @@ const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth }) => {
             </div>
           </motion.div>
 
-          {/* Right: Visual Experience */}
+          {/* Right: Visual Experience (Now Image) */}
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 1, delay: 0.2 }}
             className="relative hidden lg:block"
           >
-            <div className="relative w-full aspect-square max-w-lg mx-auto">
-
-              {/* Main Decorative Circle */}
-              <div className="absolute inset-0 bg-gradient-to-tr from-brand-yellow/10 to-transparent rounded-full blur-3xl animate-spin-slow" />
-
-              {/* Floating Cards */}
-              <div className="absolute top-[10%] right-[10%] z-20">
-                <FloatingCard delay={0}>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center text-green-400">
-                      <CheckCircle className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <p className="text-[10px] text-white/50 uppercase font-black">Status do Visto</p>
-                      <p className="text-sm font-bold text-white">Aprovado e Emitido</p>
-                    </div>
-                  </div>
-                </FloatingCard>
-              </div>
-
-              <div className="absolute bottom-[20%] left-[0%] z-30">
-                <FloatingCard delay={1.5}>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                      <span className="text-[10px] font-black tracking-widest text-red-400 uppercase">Live Agora</span>
-                    </div>
-                    <p className="text-xs text-white font-medium w-32 leading-tight">Workshop: Impostos na Espanha com Dr. Carlos</p>
-                  </div>
-                </FloatingCard>
-              </div>
-
-              {/* Central App Mockup Concept */}
-              <div className="absolute inset-8 bg-navy-900/50 backdrop-blur-xl border border-white/10 rounded-[3rem] shadow-2xl overflow-hidden flex flex-col">
-                <div className="p-6 border-b border-white/5 flex justify-between items-center">
-                  <div className="flex gap-2">
-                    <div className="w-3 h-3 rounded-full bg-red-500/50" />
-                    <div className="w-3 h-3 rounded-full bg-yellow-500/50" />
-                  </div>
-                  <div className="h-2 w-20 bg-white/10 rounded-full" />
-                </div>
-                <div className="p-8 space-y-6 flex-1 bg-gradient-to-b from-navy-900 to-navy-950">
-                  <div className="space-y-2">
-                    <div className="h-8 w-3/4 bg-white/10 rounded-lg" />
-                    <div className="h-4 w-1/2 bg-white/5 rounded-lg" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="h-32 bg-brand-yellow/5 border border-brand-yellow/20 rounded-2xl" />
-                    <div className="h-32 bg-white/5 border border-white/10 rounded-2xl" />
-                  </div>
-                </div>
-              </div>
-
+            <div className="relative w-full max-w-2xl mx-auto scale-110 origin-center">
+              <div className="absolute inset-0 bg-brand-yellow/20 blur-[100px] rounded-full opacity-50 animate-pulse-slow" />
+              <img
+                src="/hero-phones.png"
+                alt="App Interface Preview"
+                className="relative z-10 w-full h-auto drop-shadow-2xl hover:scale-105 transition-transform duration-500"
+              />
             </div>
           </motion.div>
 
@@ -182,7 +140,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth }) => {
               </div>
               <h2 className="text-4xl md:text-5xl font-black text-white tracking-tighter">Hub <span className="text-brand-yellow">Elite</span></h2>
               <p className="text-lg text-blue-100/80 leading-relaxed">
-                Acelere sua aprovação com ferramentas e suporte exclusivos para membros da elite nômade.
+                Aumente suas chances de aprovação com ferramentas e suporte exclusivos para membros da elite nômade.
               </p>
 
               <div className="space-y-6">
@@ -204,13 +162,85 @@ const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth }) => {
               </div>
             </div>
 
-            {/* Visual Representation of Elite Hub */}
-            <div className="relative h-full min-h-[400px] bg-black/20 rounded-3xl border border-white/5 overflow-hidden hidden lg:flex items-center justify-center">
-              <div className="text-center space-y-4 opacity-50">
-                <div className="w-20 h-20 bg-brand-yellow/10 rounded-full flex items-center justify-center mx-auto">
-                  <Star className="w-10 h-10 text-brand-yellow" />
+            {/* Visual Representation of Elite Hub (Moved Animation) */}
+            <div className="relative hidden lg:block">
+              <div className="relative w-full aspect-square max-w-lg mx-auto scale-90">
+
+                {/* Main Decorative Circle */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-brand-yellow/10 to-transparent rounded-full blur-3xl animate-spin-slow" />
+
+                {/* Floating Cards */}
+                <div className="absolute top-[10%] right-[10%] z-20">
+                  <FloatingCard delay={0}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center text-green-400">
+                        <CheckCircle className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-white/50 uppercase font-black">Checklist do Visto</p>
+                        <p className="text-sm font-bold text-white">Concluído rumo a viagem</p>
+                      </div>
+                    </div>
+                  </FloatingCard>
                 </div>
-                <p className="text-sm font-black text-white uppercase tracking-widest">Área de Membros</p>
+
+                <div className="absolute bottom-[20%] left-[0%] z-30">
+                  <FloatingCard delay={1.5}>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-brand-yellow rounded-full animate-pulse" />
+                        <span className="text-[10px] font-black tracking-widest text-brand-yellow uppercase">Meta Financeira</span>
+                      </div>
+                      <p className="text-xs text-white font-medium w-32 leading-tight">Você atingiu 85% da sua reserva para a Espanha!</p>
+                    </div>
+                  </FloatingCard>
+                </div>
+
+                {/* Central App Mockup Concept */}
+                <div className="absolute inset-8 bg-navy-900/80 backdrop-blur-xl border border-white/10 rounded-[2rem] shadow-2xl overflow-hidden flex flex-col">
+                  {/* Mockup Header */}
+                  <div className="p-6 border-b border-white/5 flex justify-between items-center bg-navy-950/50">
+                    <div className="space-y-1">
+                      <div className="h-2 w-24 bg-brand-yellow/20 rounded-full" />
+                      <div className="h-4 w-32 bg-white/20 rounded-full" />
+                    </div>
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-brand-yellow to-yellow-600 shadow-lg" />
+                  </div>
+
+                  {/* Mockup Body */}
+                  <div className="p-6 space-y-6 flex-1 bg-gradient-to-b from-navy-900 to-navy-950 relative">
+                    {/* Progress Section */}
+                    <div className="space-y-3 bg-white/5 p-4 rounded-2xl border border-white/5">
+                      <div className="flex justify-between text-[10px] text-white/60 font-medium uppercase tracking-widest">
+                        <span>Progresso do Visto</span>
+                        <span className="text-brand-yellow">68%</span>
+                      </div>
+                      <div className="h-2 w-full bg-navy-950 rounded-full overflow-hidden">
+                        <div className="h-full w-[68%] bg-brand-yellow rounded-full shadow-[0_0_10px_rgba(255,204,0,0.5)]" />
+                      </div>
+                    </div>
+
+                    {/* Grid Features */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-blue-500/10 border border-blue-500/20 p-4 rounded-2xl space-y-2">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                          <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
+                        </div>
+                        <div className="h-2 w-16 bg-blue-400/20 rounded-full" />
+                      </div>
+                      <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-2xl space-y-2">
+                        <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                          <CheckCircle className="w-4 h-4 text-emerald-400" />
+                        </div>
+                        <div className="h-2 w-20 bg-emerald-400/20 rounded-full" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Glass Reflection */}
+                  <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
+                </div>
+
               </div>
             </div>
           </div>
@@ -221,14 +251,25 @@ const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth }) => {
       <footer className="relative z-10 py-12 text-center text-white/20 border-t border-white/5">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-            <div className="flex items-center gap-2 grayscale opacity-50">
-              <Plane className="w-5 h-5" />
-              <span className="font-bold tracking-tighter">NomadFlow</span>
+            <div className="flex flex-col items-center md:items-start gap-4">
+              <div className="flex items-center gap-2 grayscale opacity-50 hover:opacity-100 transition-opacity duration-300">
+                <Plane className="w-5 h-5" />
+                <span className="font-bold tracking-tighter">NomadFlow</span>
+              </div>
+              <div className="flex gap-4">
+                <SocialLink href="https://instagram.com" icon={<Instagram className="w-4 h-4" />} />
+                <SocialLink href="https://facebook.com" icon={<Facebook className="w-4 h-4" />} />
+                <SocialLink href="https://linkedin.com" icon={<Linkedin className="w-4 h-4" />} />
+                {/* TikTok usually requires a custom SVG or updated lucide, checking generic fallback */}
+              </div>
             </div>
-            <div className="flex gap-8 text-sm font-medium">
+
+            <div className="flex flex-wrap justify-center gap-8 text-sm font-medium">
+              <Link to="/seja-parceiro" className="text-brand-yellow hover:text-white transition-colors font-bold">Seja um Parceiro</Link>
               <Link to="/termos" className="hover:text-white transition-colors">Termos de Uso</Link>
               <Link to="/privacidade" className="hover:text-white transition-colors">Privacidade</Link>
             </div>
+
             <p className="text-xs">© {new Date().getFullYear()} NomadFlow.</p>
           </div>
         </div>
@@ -236,6 +277,17 @@ const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth }) => {
     </div>
   );
 };
+
+const SocialLink = ({ href, icon }: { href: string, icon: React.ReactNode }) => (
+  <a
+    href={href}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center hover:bg-brand-yellow hover:text-navy-950 transition-all duration-300"
+  >
+    {icon}
+  </a>
+);
 
 const BenefitCard = ({ icon, title, desc }: { icon: any, title: string, desc: string }) => (
   <div className="glass-card bg-navy-900/40 backdrop-blur-sm rounded-[2rem] p-8 space-y-4 group border border-white/5 hover:border-brand-yellow/30 hover:bg-navy-900/60 transition-all duration-500 hover:-translate-y-2">

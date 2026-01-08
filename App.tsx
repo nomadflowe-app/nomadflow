@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Routes, Route } from 'react-router-dom';
 import {
@@ -7,33 +7,37 @@ import {
   Compass,
   BookOpen,
   Crown,
-  Plane,
   ListTodo,
   Newspaper,
   Settings
 } from 'lucide-react';
-import Dashboard from './components/Dashboard';
+
+// Eager Loading (Critical Path)
 import Sidebar from './components/Sidebar';
-import Guides from './components/Guides';
-import MembersArea from './components/MembersArea';
-import Profile from './components/Profile';
 import LandingPage from './components/LandingPage';
 import Onboarding from './components/Onboarding';
-import { AdminArea } from './components/AdminArea';
-import { PartnersArea } from './components/PartnersArea';
 import MobileGuard from './components/MobileGuard';
 import AuthModal from './components/AuthModal';
 import DatabaseSetup from './components/DatabaseSetup';
-import TermsOfUse from './components/TermsOfUse';
-import PrivacyPolicy from './components/PrivacyPolicy';
 import ProductWizard from './components/ProductWizard';
+import { NavButton } from './components/NavButton';
 import { UserProfile, UserGoal } from './types';
 import { supabase, signOutUser, getUserProfile, setOnDatabaseError } from './lib/supabase';
 import { ToastProvider } from './context/ToastContext';
-import { NavButton } from './components/NavButton';
 import { ChecklistProvider } from './context/ChecklistContext';
-import Tasks from './components/Tasks';
-import Success from './components/Success';
+
+// Lazy Loading (Optimization)
+const Dashboard = lazy(() => import('./components/Dashboard'));
+const Guides = lazy(() => import('./components/Guides'));
+const MembersArea = lazy(() => import('./components/MembersArea'));
+const Profile = lazy(() => import('./components/Profile'));
+const AdminArea = lazy(() => import('./components/AdminArea').then(module => ({ default: module.AdminArea })));
+const PartnersArea = lazy(() => import('./components/PartnersArea').then(module => ({ default: module.PartnersArea })));
+const Tasks = lazy(() => import('./components/Tasks'));
+const Success = lazy(() => import('./components/Success'));
+const TermsOfUse = lazy(() => import('./components/TermsOfUse'));
+const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
+const BeAPartner = lazy(() => import('./components/BeAPartner'));
 
 type View = 'Dashboard' | 'Tasks' | 'Guides' | 'Members' | 'Profile' | 'Success';
 
@@ -213,10 +217,10 @@ const MainContent: React.FC = () => {
         />
 
         {/* Mobile Header */}
-        <header className="fixed top-0 w-full z-40 px-6 py-4 pt-[calc(1rem+env(safe-area-inset-top))] flex justify-between items-center md:hidden backdrop-blur-lg border-b border-black/5 bg-white/70">
+        <header className="fixed top-0 w-full z-40 px-8 py-4 pt-[calc(1rem+env(safe-area-inset-top))] flex justify-between items-center md:hidden backdrop-blur-lg border-b border-black/5 bg-white/70">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gold-500 rounded-lg flex items-center justify-center">
-              <Plane className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 flex items-center justify-center">
+              <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
             </div>
             <span className="text-lg font-black tracking-tighter text-navy-950">Nomad<span className="text-white">Flow</span></span>
           </div>
@@ -226,18 +230,24 @@ const MainContent: React.FC = () => {
         </header>
 
         {/* Main Content Area */}
-        <main className="lg:pl-60 min-h-screen relative w-full">
-          <div className="max-w-5xl mx-auto px-6 lg:px-8 pt-[calc(7rem+env(safe-area-inset-top))] lg:pt-8 pb-[calc(8rem+env(safe-area-inset-bottom))] lg:pb-12">
-            <AnimatePresence mode="wait">
-              {activeView === 'Dashboard' && <motion.div key="db" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}><Dashboard /></motion.div>}
-              {activeView === 'Tasks' && <motion.div key="ts" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}><Tasks /></motion.div>}
-              {activeView === 'Guides' && <motion.div key="gd" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}><Guides /></motion.div>}
-              {activeView === 'Members' && <motion.div key="mb" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}><MembersArea /></motion.div>}
-              {activeView === 'Partners' && <motion.div key="pt" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}><PartnersArea /></motion.div>}
-              {activeView === 'Success' && <motion.div key="sc" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.1 }}><Success onContinue={() => { setActiveView('Dashboard'); window.location.reload(); }} /></motion.div>}
-              {activeView === 'Profile' && <motion.div key="pr" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}><Profile onLogout={handleLogout} onUpdate={setProfile} /></motion.div>}
-              {activeView === 'Admin' && isAdmin && <motion.div key="ad" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}><AdminArea /></motion.div>}
-            </AnimatePresence>
+        <main className="lg:pl-60 min-h-screen relative w-full overflow-x-hidden">
+          <div className="max-w-5xl mx-auto px-8 lg:px-8 pt-[calc(7rem+env(safe-area-inset-top))] lg:pt-8 pb-[calc(8rem+env(safe-area-inset-bottom))] lg:pb-12">
+            <Suspense fallback={
+              <div className="flex flex-col items-center justify-center py-20 h-[50vh]">
+                <div className="w-12 h-12 border-4 border-white/5 border-t-gold-500 rounded-full animate-spin mb-4" />
+              </div>
+            }>
+              <AnimatePresence mode="wait">
+                {activeView === 'Dashboard' && <motion.div key="db" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}><Dashboard /></motion.div>}
+                {activeView === 'Tasks' && <motion.div key="ts" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}><Tasks /></motion.div>}
+                {activeView === 'Guides' && <motion.div key="gd" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}><Guides /></motion.div>}
+                {activeView === 'Members' && <motion.div key="mb" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}><MembersArea /></motion.div>}
+                {activeView === 'Partners' && <motion.div key="pt" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}><PartnersArea /></motion.div>}
+                {activeView === 'Success' && <motion.div key="sc" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.1 }}><Success onContinue={() => { setActiveView('Dashboard'); window.location.reload(); }} /></motion.div>}
+                {activeView === 'Profile' && <motion.div key="pr" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}><Profile onLogout={handleLogout} onUpdate={setProfile} /></motion.div>}
+                {activeView === 'Admin' && isAdmin && <motion.div key="ad" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}><AdminArea /></motion.div>}
+              </AnimatePresence>
+            </Suspense>
           </div>
         </main>
 
@@ -280,13 +290,21 @@ const MainContent: React.FC = () => {
   );
 };
 
+
 const App: React.FC = () => {
   return (
-    <Routes>
-      <Route path="/termos" element={<TermsOfUse />} />
-      <Route path="/privacidade" element={<PrivacyPolicy />} />
-      <Route path="/*" element={<MainContent />} />
-    </Routes>
+    <Suspense fallback={
+      <div className="min-h-screen bg-navy-950 flex flex-col items-center justify-center">
+        <div className="w-12 h-12 border-4 border-white/5 border-t-gold-500 rounded-full animate-spin" />
+      </div>
+    }>
+      <Routes>
+        <Route path="/termos" element={<TermsOfUse />} />
+        <Route path="/privacidade" element={<PrivacyPolicy />} />
+        <Route path="/seja-parceiro" element={<BeAPartner />} />
+        <Route path="/*" element={<MainContent />} />
+      </Routes>
+    </Suspense>
   );
 };
 

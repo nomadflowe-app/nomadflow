@@ -18,7 +18,7 @@ const PLANS = [
     icon: <Zap className="w-5 h-5" />,
     color: 'from-blue-400 to-blue-600',
     priceId: 'price_1SlmxCDi3wLcfDaXrHbD0oQ7',
-    features: ['Checklist do Visto', 'Guias & Tutoriais', 'Comunidade VIP']
+    features: ['Checklist do Visto', 'Guias & Tutoriais', 'Comunidade VIP', 'Templates Editáveis']
   },
   {
     id: 'anual',
@@ -31,17 +31,6 @@ const PLANS = [
     priceId: 'price_1SlmzmDi3wLcfDaX6KdV8faz',
     popular: true,
     features: ['Tudo do Mensal', 'Templates Editáveis', 'Suporte Prioritário', 'Economia de 50%']
-  },
-  {
-    id: 'pro',
-    name: 'Elite Pro',
-    price: 'R$ 1.190',
-    period: ' Pago uma vez',
-    description: 'Acesso vitalício para nômades profissionais.',
-    icon: <Crown className="w-5 h-5" />,
-    color: 'from-purple-400 to-purple-600',
-    priceId: 'price_1Sln2yDi3wLcfDaX14HFPOPg',
-    features: ['Tudo do Anual', 'Acesso Vitalício', 'Consultoria Individual*', 'Badge Exclusiva Pro']
   }
 ];
 
@@ -84,7 +73,7 @@ const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, onUpgrade 
             <p className="text-sm md:text-base text-blue-200/60 font-medium">Selecione a melhor opção para sua expedição.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
             {PLANS.map((plan) => (
               <button
                 key={plan.id}

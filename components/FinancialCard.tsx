@@ -41,8 +41,8 @@ export const FinancialCard: React.FC<FinancialCardProps> = ({
 
     return (
         <>
-            <div className="grid grid-cols-1 gap-4">
-                <motion.div className="glass-card rounded-[2.5rem] p-8">
+            <motion.div className="glass-card rounded-[2.5rem] p-8 h-full flex flex-col justify-between">
+                <div>
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-4">
                             <div className="p-3 bg-brand-yellow/20 rounded-2xl text-brand-yellow"><Wallet className="w-5 h-5" /></div>
@@ -76,10 +76,10 @@ export const FinancialCard: React.FC<FinancialCardProps> = ({
                             </div>
                         )}
                     </div>
-                </motion.div>
-            </div>
+                </div>
+            </motion.div>
 
-            <motion.div className="glass-card rounded-[2.5rem] p-8 flex flex-col md:flex-row items-center gap-8 mt-4">
+            <motion.div className="glass-card rounded-[2.5rem] p-8 flex flex-col md:flex-row items-center gap-8 h-full">
                 <div className="flex-1 space-y-4 w-full">
                     <div className="flex items-center gap-2 text-white"><TrendingUp className="w-5 h-5 text-brand-yellow" /><span className="text-sm font-bold uppercase tracking-wider">Reserva Financeira</span></div>
 

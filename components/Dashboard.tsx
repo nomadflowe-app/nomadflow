@@ -13,6 +13,7 @@ import { useToast } from '../context/ToastContext';
 import { useChecklist } from '../context/ChecklistContext';
 import CircularProgress from './CircularProgress';
 import CurrencyConverter from './CurrencyConverter';
+import NotificationCenter from './NotificationCenter';
 import { redirectToCheckout } from '../lib/stripe';
 
 const Dashboard: React.FC = () => {
@@ -45,6 +46,13 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('nomad_goal', JSON.stringify(goal));
   }, [goal]);
+
+  // Listen for upgrade triggers from children components
+  useEffect(() => {
+    const handleOpenModal = () => setShowPremiumModal(true);
+    document.addEventListener('open-premium-modal', handleOpenModal);
+    return () => document.removeEventListener('open-premium-modal', handleOpenModal);
+  }, []);
 
   const handleSaveGoal = async (newGoal: UserGoal) => {
     setGoal(newGoal);
@@ -82,15 +90,18 @@ const Dashboard: React.FC = () => {
           <h1 className="text-3xl font-black text-white tracking-tight">Hola, <span className="text-brand-yellow">{profile.fullName?.split(' ')[0]}</span>.</h1>
           <p className="text-white/60 font-medium italic">Sua expedição rumo à Espanha.</p>
         </div>
-        {!isPremiumUser && (
-          <button
-            onClick={() => setShowPremiumModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-transparent border border-brand-yellow rounded-2xl text-white hover:scale-105 transition-all shadow-lg"
-          >
-            <Crown className="w-4 h-4 text-brand-yellow" />
-            <span className="text-[10px] font-black uppercase tracking-widest">Upgrade Elite</span>
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          <NotificationCenter />
+          {!isPremiumUser && (
+            <button
+              onClick={() => setShowPremiumModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-transparent border border-brand-yellow rounded-2xl text-white hover:scale-105 transition-all shadow-lg hidden sm:flex"
+            >
+              <Crown className="w-4 h-4 text-brand-yellow" />
+              <span className="text-[10px] font-black uppercase tracking-widest">Upgrade Elite</span>
+            </button>
+          )}
+        </div>
       </motion.header>
 
       <AnimatePresence>
@@ -103,9 +114,8 @@ const Dashboard: React.FC = () => {
         )}
       </AnimatePresence>
 
-      <CurrencyConverter />
-
       <div className="grid lg:grid-cols-2 gap-6">
+        <CurrencyConverter />
         <FinancialCard
           goal={goal}
           onSave={handleSaveGoal}
@@ -114,17 +124,15 @@ const Dashboard: React.FC = () => {
           percentage={financialPercentage}
         />
 
-        <section className="space-y-6">
-          {!isPremiumUser ? (
-            <ContentProtection isPremium={false} />
-          ) : (
+        <section className="space-y-6 h-full flex flex-col">
+          <ContentProtection isPremium={!!isPremiumUser}>
             <div className="flex flex-col gap-6">
               <div className="space-y-4">
-                <div className="flex justify-between items-end">
-                  <h2 className="text-2xl font-black text-white tracking-tight">Expedição Espanha</h2>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-black text-brand-yellow">{Math.round(overallProgress)}%</span>
-                    <span className="text-2xl font-black text-white/40 uppercase tracking-widest">Concluído</span>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-2 sm:gap-4">
+                  <h2 className="text-xl md:text-2xl font-black text-white tracking-tight">Expedição Espanha</h2>
+                  <div className="flex items-baseline gap-2 shrink-0">
+                    <span className="text-xl md:text-2xl font-black text-brand-yellow font-mono">{Math.round(overallProgress)}%</span>
+                    <span className="text-xs md:text-2xl font-black text-white/40 uppercase tracking-widest">Concluído</span>
                   </div>
                 </div>
                 <div className="h-3 w-full bg-white/10 rounded-full overflow-hidden relative">
@@ -134,7 +142,7 @@ const Dashboard: React.FC = () => {
                 </div>
               </div>
             </div>
-          )}
+          </ContentProtection>
 
           <div className="p-6 rounded-[2rem] border border-white/10 bg-white/5 flex flex-col items-center justify-center text-center gap-3 h-full min-h-[200px]">
             <h3 className="text-white font-bold">Próximos Passos?</h3>

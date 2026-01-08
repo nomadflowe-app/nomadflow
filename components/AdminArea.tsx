@@ -10,8 +10,6 @@ import {
     Newspaper,
     Video,
     MessageSquare,
-    Search,
-    CheckCircle2,
     AlertCircle,
     Handshake
 } from 'lucide-react';
@@ -29,12 +27,13 @@ import {
     getPartners,
     createPartner,
     updatePartner,
-    deletePartner
+    deletePartner,
+    createNotification
 } from '../lib/supabase';
 import { useToast } from '../context/ToastContext';
 import { SystemStatus } from './SystemStatus';
 
-type AdminTab = 'Notícias' | 'Tutoriais' | 'Comunidade' | 'Parceiros';
+type AdminTab = 'Notícias' | 'Tutoriais' | 'Comunidade' | 'Parceiros' | 'Notificações';
 
 export const AdminArea: React.FC = () => {
     const { showToast } = useToast();
@@ -60,7 +59,9 @@ export const AdminArea: React.FC = () => {
         whatsapp: '',
         site_url: '',
         discount_code: '',
-        is_exclusive: false
+        is_exclusive: false,
+        notification_type: 'info',
+        action_url: ''
     });
 
     const extractYoutubeId = (url: string) => {
@@ -165,6 +166,26 @@ export const AdminArea: React.FC = () => {
         setIsSaving(true);
         try {
             let success = false;
+
+            // --- NOTIFICAÇÕES (CRIAÇÃO APENAS) ---
+            if (activeTab === 'Notificações') {
+                const result = await createNotification({
+                    title: formData.title,
+                    message: formData.content, // Usando content como message
+                    type: formData.notification_type,
+                    action_url: formData.action_url
+                });
+                success = !!result;
+                if (success) {
+                    showToast('Notificação enviada para todos os usuários!', 'success');
+                    setIsCreating(false);
+                    setFormData({ ...formData, title: '', content: '', action_url: '' });
+                } else {
+                    showToast('Erro ao enviar notificação.', 'error');
+                }
+                setIsSaving(false);
+                return;
+            }
 
             // --- EDIÇÃO ---
             if (editingId) {
@@ -303,7 +324,8 @@ export const AdminArea: React.FC = () => {
                         { id: 'Notícias', icon: <Newspaper className="w-4 h-4" /> },
                         { id: 'Tutoriais', icon: <Video className="w-4 h-4" /> },
                         { id: 'Parceiros', icon: <Handshake className="w-4 h-4" /> },
-                        { id: 'Comunidade', icon: <MessageSquare className="w-4 h-4" /> }
+                        { id: 'Comunidade', icon: <MessageSquare className="w-4 h-4" /> },
+                        { id: 'Notificações', icon: <MessageSquare className="w-4 h-4 text-brand-yellow" /> }
                     ].map(tab => (
                         <button
                             key={tab.id}
@@ -321,74 +343,91 @@ export const AdminArea: React.FC = () => {
             </header>
 
             <div className="space-y-4">
-                <AnimatePresence mode="wait">
-                    {loading ? (
-                        <motion.div
-                            key="loading"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="flex flex-col items-center justify-center py-20 gap-4"
+                {activeTab === 'Notificações' ? (
+                    <div className="flex flex-col items-center justify-center py-10 gap-4">
+                        <button
+                            onClick={() => {
+                                setEditingId(null);
+                                setFormData({ title: '', content: '', notification_type: 'info', action_url: '' });
+                                setIsCreating(true);
+                            }}
+                            className="bg-brand-yellow text-navy-950 px-8 py-4 rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl flex items-center gap-2"
                         >
-                            <div className="w-10 h-10 border-4 border-brand-yellow/30 border-t-brand-yellow rounded-full animate-spin" />
-                            <p className="text-white/40 font-black uppercase text-[10px] tracking-widest">Carregando painel...</p>
-                        </motion.div>
-                    ) : (
-                        <motion.div
-                            key="list"
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="grid gap-4"
-                        >
-                            {data.map(item => (
-                                <div
-                                    key={item.id}
-                                    className="glass-card p-6 rounded-[2rem] border-white/5 bg-white/5 flex justify-between items-center group hover:bg-white/10 transition-all border border-transparent hover:border-white/10"
-                                >
-                                    <div className="space-y-1">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-[9px] font-black uppercase tracking-widest text-brand-yellow bg-brand-yellow/10 px-2 py-0.5 rounded-md">
-                                                {item.category || item.instructor || (item.name ? 'Parceiro' : 'Geral')}
-                                            </span>
-                                            {activeTab === 'Comunidade' && item.is_elite && (
-                                                <span className="text-[9px] font-black uppercase tracking-widest text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded-md">
-                                                    Elite
+                            <Plus className="w-5 h-5" />
+                            Nova Notificação
+                        </button>
+                        <p className="text-white/40 text-xs">As notificações enviadas não aparecem nesta lista (apenas no banco).</p>
+                    </div>
+                ) : (
+                    <AnimatePresence mode="wait">
+                        {loading ? (
+                            <motion.div
+                                key="loading"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="flex flex-col items-center justify-center py-20 gap-4"
+                            >
+                                <div className="w-10 h-10 border-4 border-brand-yellow/30 border-t-brand-yellow rounded-full animate-spin" />
+                                <p className="text-white/40 font-black uppercase text-[10px] tracking-widest">Carregando painel...</p>
+                            </motion.div>
+                        ) : (
+                            <motion.div
+                                key="list"
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="grid gap-4"
+                            >
+                                {data.map(item => (
+                                    <div
+                                        key={item.id}
+                                        className="glass-card p-6 rounded-[2rem] border-white/5 bg-white/5 flex justify-between items-center group hover:bg-white/10 transition-all border border-transparent hover:border-white/10"
+                                    >
+                                        <div className="space-y-1">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[9px] font-black uppercase tracking-widest text-brand-yellow bg-brand-yellow/10 px-2 py-0.5 rounded-md">
+                                                    {item.category || item.instructor || (item.name ? 'Parceiro' : 'Geral')}
                                                 </span>
+                                                {activeTab === 'Comunidade' && item.is_elite && (
+                                                    <span className="text-[9px] font-black uppercase tracking-widest text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded-md">
+                                                        Elite
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <h3 className="text-white font-bold leading-tight">{item.title || item.user_name || item.name}</h3>
+                                            <p className="text-white/40 text-xs line-clamp-1 italic">
+                                                {item.excerpt || item.content || item.description || 'Sem descrição'}
+                                            </p>
+                                        </div>
+
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => handleDelete(item.id)}
+                                                className="p-3 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all border border-red-500/20"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                            {activeTab !== 'Comunidade' && (
+                                                <button
+                                                    onClick={() => handleEdit(item)}
+                                                    className="p-3 bg-white/10 text-white rounded-xl hover:bg-white hover:text-navy-950 transition-all border border-white/20"
+                                                >
+                                                    <Edit3 className="w-4 h-4" />
+                                                </button>
                                             )}
                                         </div>
-                                        <h3 className="text-white font-bold leading-tight">{item.title || item.user_name || item.name}</h3>
-                                        <p className="text-white/40 text-xs line-clamp-1 italic">
-                                            {item.excerpt || item.content || item.description || 'Sem descrição'}
-                                        </p>
                                     </div>
+                                ))}
 
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => handleDelete(item.id)}
-                                            className="p-3 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all border border-red-500/20"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
-                                        {activeTab !== 'Comunidade' && (
-                                            <button
-                                                onClick={() => handleEdit(item)}
-                                                className="p-3 bg-white/10 text-white rounded-xl hover:bg-white hover:text-navy-950 transition-all border border-white/20"
-                                            >
-                                                <Edit3 className="w-4 h-4" />
-                                            </button>
-                                        )}
+                                {data.length === 0 && (
+                                    <div className="text-center py-20 bg-white/5 rounded-[3rem] border border-dashed border-white/10">
+                                        <p className="text-white/20 font-black uppercase text-xs tracking-widest">Nenhum registro encontrado</p>
                                     </div>
-                                </div>
-                            ))}
-
-                            {data.length === 0 && (
-                                <div className="text-center py-20 bg-white/5 rounded-[3rem] border border-dashed border-white/10">
-                                    <p className="text-white/20 font-black uppercase text-xs tracking-widest">Nenhum registro encontrado</p>
-                                </div>
-                            )}
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                                )}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                )}
             </div>
 
             {/* MODAL DE CRIAÇÃO */}
@@ -413,17 +452,57 @@ export const AdminArea: React.FC = () => {
 
                             <div className="space-y-4">
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">{activeTab === 'Parceiros' ? 'Nome da Empresa' : 'Título'}</label>
+                                    <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">
+                                        {activeTab === 'Parceiros' ? 'Nome da Empresa' : activeTab === 'Notificações' ? 'Título da Notificação' : 'Título'}
+                                    </label>
                                     <input
                                         type="text"
                                         className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
-                                        placeholder="Título cativante..."
+                                        placeholder="Título..."
                                         value={formData.title}
                                         onChange={e => setFormData({ ...formData, title: e.target.value })}
                                     />
                                 </div>
 
-                                {activeTab === 'Notícias' ? (
+                                {activeTab === 'Notificações' ? (
+                                    <>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Mensagem</label>
+                                            <textarea
+                                                className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
+                                                placeholder="Escreva sua mensagem curta aqui..."
+                                                rows={3}
+                                                maxLength={200}
+                                                value={formData.content}
+                                                onChange={e => setFormData({ ...formData, content: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Tipo</label>
+                                                <select
+                                                    className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
+                                                    value={formData.notification_type}
+                                                    onChange={e => setFormData({ ...formData, notification_type: e.target.value })}
+                                                >
+                                                    <option value="info" className="bg-navy-900">Informação (Amarelo)</option>
+                                                    <option value="news" className="bg-navy-900">Novidade (Azul)</option>
+                                                    <option value="warning" className="bg-navy-900">Alerta (Vermelho)</option>
+                                                </select>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Link de Ação (Opcional)</label>
+                                                <input
+                                                    type="text"
+                                                    className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
+                                                    placeholder="https://..."
+                                                    value={formData.action_url}
+                                                    onChange={e => setFormData({ ...formData, action_url: e.target.value })}
+                                                />
+                                            </div>
+                                        </div>
+                                    </>
+                                ) : activeTab === 'Notícias' ? (
                                     <>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="space-y-1">
@@ -600,7 +679,7 @@ export const AdminArea: React.FC = () => {
                                         <>
 
                                             <Save className="w-5 h-5" />
-                                            {editingId ? 'Salvar Alterações' : 'Salvar Conteúdo'}
+                                            {activeTab === 'Notificações' ? 'Enviar Notificação' : editingId ? 'Salvar Alterações' : 'Salvar Conteúdo'}
                                         </>
                                     )}
                                 </button>

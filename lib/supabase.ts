@@ -597,3 +597,17 @@ export async function deletePartner(id: string) {
   }
   return true;
 }
+
+export async function createNotification(notification: { title: string; message: string; type: string; action_url?: string }) {
+  const { data, error } = await supabase
+    .from('notifications')
+    .insert([notification])
+    .select()
+    .single();
+
+  if (error) {
+    handleSupabaseError(error, 'notifications (create)');
+    return null;
+  }
+  return data;
+}

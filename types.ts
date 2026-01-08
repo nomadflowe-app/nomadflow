@@ -67,3 +67,12 @@ export interface CommunityPost {
   comments: number;
   isElite: boolean;
 }
+
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: 'info' | 'news' | 'warning';
+  actionUrl?: string;
+  createdAt: string;
+}

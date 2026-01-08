@@ -6,7 +6,6 @@ import {
     Crown,
     UserCircle,
     Settings,
-    Plane,
     LogOut,
     Handshake
 } from 'lucide-react';
@@ -38,8 +37,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, isAdmin, p
             {/* Logo Area */}
             <div className="p-6 pb-4">
                 <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 bg-brand-yellow rounded-lg flex items-center justify-center shadow-[0_0_20px_rgba(255,204,0,0.2)]">
-                        <Plane className="w-5 h-5 text-navy-950 fill-navy-950" />
+                    <div className="w-10 h-10 flex items-center justify-center">
+                        <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
                     </div>
                     <span className="text-lg font-black tracking-tighter text-white">Nomad<span className="text-brand-yellow">Flow</span></span>
                 </div>

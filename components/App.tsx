@@ -145,8 +145,8 @@ const App: React.FC = () => {
       <div className="min-h-screen">
         <header className="fixed top-0 w-full z-40 px-6 py-4 pt-[calc(1rem+env(safe-area-inset-top))] flex justify-between items-center md:hidden backdrop-blur-lg border-b border-black/5 bg-white/70">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gold-500 rounded-lg flex items-center justify-center">
-              <Plane className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 flex items-center justify-center">
+              <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
             </div>
             <span className="text-lg font-black tracking-tighter text-navy-950">Nomad<span className="text-white">Flow</span></span>
           </div>
@@ -206,8 +206,8 @@ const NavButton = ({ active, onClick, icon, label }: { active: boolean, onClick:
   <button
     onClick={onClick}
     className={`flex-1 flex flex-col items-center gap-1.5 py-4 transition-all duration-500 rounded-[2rem] ${active
-        ? 'bg-white text-navy-950 shadow-xl scale-105'
-        : 'text-gold-400 hover:text-realWhite'
+      ? 'bg-white text-navy-950 shadow-xl scale-105'
+      : 'text-gold-400 hover:text-realWhite'
       }`}
   >
     {icon}

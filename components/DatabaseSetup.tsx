@@ -25,6 +25,11 @@ BEGIN
         ALTER TABLE public.profiles ADD COLUMN tier text DEFAULT 'free';
     END IF;
 
+    -- Garantir constraint UNIQUE no user_id (Necessário para post_likes e outras FKs)
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'profiles_user_id_key') THEN
+        ALTER TABLE public.profiles ADD CONSTRAINT profiles_user_id_key UNIQUE (user_id);
+    END IF;
+
     -- checklists
     create table if not exists public.checklists (
         email text primary key references public.profiles(email) on delete cascade,
@@ -103,6 +108,16 @@ BEGIN
         is_exclusive boolean default false,
         logo_url text,
         is_exclusive boolean default false,
+        created_at timestamp with time zone default now()
+    );
+
+    -- notifications (NEW)
+    create table if not exists public.notifications (
+        id uuid default gen_random_uuid() primary key,
+        title text not null,
+        message text not null,
+        type text default 'info',
+        action_url text,
         created_at timestamp with time zone default now()
     );
 
@@ -200,6 +215,36 @@ BEGIN
 
     drop policy if exists "Users can manage own likes" on public.post_likes;
     create policy "Users can manage own likes" on public.post_likes for all using (auth.uid() = user_id);
+
+    -- Notifications
+    drop policy if exists "Everyone can read notifications" on public.notifications;
+    create policy "Everyone can read notifications" on public.notifications for select using (true);
+
+    drop policy if exists "Admins can manage notifications" on public.notifications;
+    create policy "Admins can manage notifications" on public.notifications for all using (
+        exists (select 1 from public.profiles where user_id = auth.uid() and is_admin = true)
+    ) with check (
+        exists (select 1 from public.profiles where user_id = auth.uid() and is_admin = true)
+    );
+
+    -- 🛡️ SEGURANÇA EXTRA: Proteção da coluna is_admin (Trigger)
+    CREATE OR REPLACE FUNCTION public.protect_admin_column()
+    RETURNS TRIGGER AS $$
+    BEGIN
+        IF NEW.is_admin IS DISTINCT FROM OLD.is_admin THEN
+            IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE user_id = auth.uid() AND is_admin = true) THEN
+                NEW.is_admin := OLD.is_admin;
+            END IF;
+        END IF;
+        RETURN NEW;
+    END;
+    $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+    DROP TRIGGER IF EXISTS on_profile_update_protect_admin ON public.profiles;
+    CREATE TRIGGER on_profile_update_protect_admin
+    BEFORE UPDATE ON public.profiles
+    FOR EACH ROW EXECUTE FUNCTION public.protect_admin_column();
+
 END $$;
 
 -- 4. TORRNAR-SE ADMIN (OPCIONAL/MANUAL)
