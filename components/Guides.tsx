@@ -53,9 +53,34 @@ const Guides: React.FC = () => {
     );
   }, [searchTerm, articles]);
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5, ease: "easeOut" }
+    }
+  };
+
   return (
-    <div className="space-y-8 pb-32">
-      <header className="space-y-6">
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="space-y-8 pb-32"
+    >
+      <motion.header variants={itemVariants} className="space-y-6">
         <div className="flex justify-between items-end">
           <div>
             <h1 className="text-3xl font-black text-white tracking-tight">Notícias & Updates</h1>
@@ -76,9 +101,9 @@ const Guides: React.FC = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-      </header>
+      </motion.header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 auto-rows-fr">
+      <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 auto-rows-fr">
         <AnimatePresence mode="popLayout">
           {loading ? (
             <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="col-span-full flex flex-col items-center justify-center py-20 gap-4">
@@ -139,7 +164,7 @@ const Guides: React.FC = () => {
             ))
           )}
         </AnimatePresence>
-      </div>
+      </motion.div>
 
       <AnimatePresence>
         {selectedArticle && (
@@ -208,7 +233,7 @@ const Guides: React.FC = () => {
           </div>
         )}
       </AnimatePresence>
-    </div>
+    </motion.div>
   );
 };
 

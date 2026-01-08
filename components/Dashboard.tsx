@@ -83,9 +83,34 @@ const Dashboard: React.FC = () => {
     return Math.min(100, (goal.currentAmount / goal.targetAmount) * 100);
   }, [goal]);
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5, ease: "easeOut" }
+    }
+  };
+
   return (
-    <div className="space-y-8 pb-32">
-      <motion.header initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex justify-between items-end">
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="space-y-8 pb-32"
+    >
+      <motion.header variants={itemVariants} className="flex justify-between items-end">
         <div>
           <h1 className="text-3xl font-black text-white tracking-tight">Hola, <span className="text-brand-yellow">{profile.fullName?.split(' ')[0]}</span>.</h1>
           <p className="text-white/60 font-medium italic">Sua expedição rumo à Espanha.</p>
@@ -115,16 +140,21 @@ const Dashboard: React.FC = () => {
       </AnimatePresence>
 
       <div className="grid lg:grid-cols-2 gap-6">
-        <CurrencyConverter />
-        <FinancialCard
-          goal={goal}
-          onSave={handleSaveGoal}
-          isEditing={isEditingGoal}
-          setIsEditing={setIsEditingGoal}
-          percentage={financialPercentage}
-        />
+        <motion.div variants={itemVariants}>
+          <CurrencyConverter />
+        </motion.div>
 
-        <section className="space-y-6 h-full flex flex-col">
+        <motion.div variants={itemVariants}>
+          <FinancialCard
+            goal={goal}
+            onSave={handleSaveGoal}
+            isEditing={isEditingGoal}
+            setIsEditing={setIsEditingGoal}
+            percentage={financialPercentage}
+          />
+        </motion.div>
+
+        <motion.section variants={itemVariants} className="space-y-6 h-full flex flex-col">
           <ContentProtection isPremium={!!isPremiumUser}>
             <div className="flex flex-col gap-6">
               <div className="space-y-4">
@@ -136,7 +166,12 @@ const Dashboard: React.FC = () => {
                   </div>
                 </div>
                 <div className="h-3 w-full bg-white/10 rounded-full overflow-hidden relative">
-                  <motion.div initial={{ width: 0 }} animate={{ width: `${overallProgress}%` }} className="h-full bg-brand-yellow relative">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${overallProgress}%` }}
+                    transition={{ duration: 1.5, ease: "easeOut", delay: 0.5 }}
+                    className="h-full bg-brand-yellow relative"
+                  >
                     <div className="absolute inset-0 progress-shimmer-effect opacity-60" />
                   </motion.div>
                 </div>
@@ -144,13 +179,16 @@ const Dashboard: React.FC = () => {
             </div>
           </ContentProtection>
 
-          <div className="p-6 rounded-[2rem] border border-white/10 bg-white/5 flex flex-col items-center justify-center text-center gap-3 h-full min-h-[200px]">
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            className="p-6 rounded-[2rem] border border-white/10 bg-white/5 flex flex-col items-center justify-center text-center gap-3 h-full min-h-[200px] transition-colors hover:bg-white/10"
+          >
             <h3 className="text-white font-bold">Próximos Passos?</h3>
             <p className="text-white/60 text-sm max-w-xs">Acesse a aba <span className="text-brand-yellow font-bold">Tarefas</span> para gerenciar seu checklist detalhado.</p>
-          </div>
-        </section>
+          </motion.div>
+        </motion.section>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

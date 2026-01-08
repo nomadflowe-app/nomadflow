@@ -8,6 +8,39 @@ interface LandingPageProps {
 }
 
 const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth }) => {
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2,
+        delayChildren: 0.3
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.8,
+        ease: [0.215, 0.61, 0.355, 1]
+      }
+    }
+  };
+
+  const staggerContainer = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-navy-950 relative overflow-hidden font-sans selection:bg-brand-yellow selection:text-navy-950">
 
@@ -19,7 +52,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth }) => {
       </div>
 
       {/* Navbar Transparente */}
-      <nav className="fixed top-0 w-full z-50 px-6 md:px-12 py-6 flex justify-between items-center backdrop-blur-sm">
+      <nav className="fixed top-0 w-full z-50 px-6 md:px-12 py-6 flex justify-between items-center backdrop-blur-md bg-navy-950/20">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 flex items-center justify-center">
             <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
@@ -40,17 +73,18 @@ const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth }) => {
 
           {/* Left: Copy & CTA */}
           <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
             className="space-y-8 text-center lg:text-left pr-4"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/5 border border-brand-yellow/30 rounded-full shadow-[0_0_15px_rgba(255,204,0,0.1)] mx-auto lg:mx-0">
+            <motion.div variants={itemVariants} className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/5 border border-brand-yellow/30 rounded-full shadow-[0_0_15px_rgba(255,204,0,0.1)] mx-auto lg:mx-0">
               <span className="w-2 h-2 bg-brand-yellow rounded-full animate-pulse" />
               <span className="text-[10px] font-black text-brand-yellow uppercase tracking-[0.2em]">Agora disponível para Brasileiros</span>
-            </div>
+            </motion.div>
 
-            <h1
+            <motion.h1
+              variants={itemVariants}
               className="font-black text-white leading-[1.1] tracking-tighter"
               style={{ fontSize: 'clamp(2.5rem, 5.5vw, 4.2rem)' }}
             >
@@ -58,13 +92,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth }) => {
               jornada rumo ao <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-yellow via-white to-brand-yellow bg-[200%_auto] animate-shine">Visto de Nômade</span> <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-yellow via-white to-brand-yellow bg-[200%_auto] animate-shine">Digital na Espanha</span>
-            </h1>
+            </motion.h1>
 
-            <p className="text-base md:text-lg text-blue-100/80 font-medium leading-relaxed max-w-xl mx-auto lg:mx-0">
+            <motion.p variants={itemVariants} className="text-base md:text-lg text-blue-100/80 font-medium leading-relaxed max-w-xl mx-auto lg:mx-0">
               Tudo o que você precisa para se organizar, planejar e solicitar o Visto de Nômade Digital na Espanha, em um único lugar.
-            </p>
+            </motion.p>
 
-            <div className="flex flex-col sm:flex-row items-center gap-4 pt-4 justify-center lg:justify-start">
+            <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center gap-4 pt-4 justify-center lg:justify-start">
               <button
                 onClick={onOpenAuth}
                 className="w-full sm:w-auto px-8 py-4 bg-brand-yellow text-navy-950 rounded-2xl font-black text-sm uppercase tracking-widest shadow-[0_10px_40px_-10px_rgba(255,204,0,0.4)] hover:shadow-[0_20px_60px_-15px_rgba(255,204,0,0.5)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 group"
@@ -72,22 +106,24 @@ const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth }) => {
                 Começar minha jornada
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </button>
-            </div>
+            </motion.div>
           </motion.div>
 
           {/* Right: Visual Experience (Now Image) */}
           <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 1, delay: 0.2 }}
+            initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
+            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            transition={{ duration: 1.2, ease: "easeOut", delay: 0.2 }}
             className="relative hidden lg:flex justify-center items-center"
           >
             <div className="relative w-full max-w-xl scale-110 origin-center">
               <div className="absolute inset-0 bg-brand-yellow/20 blur-[100px] rounded-full opacity-50 animate-pulse-slow" />
-              <img
+              <motion.img
+                animate={{ y: [0, -15, 0] }}
+                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
                 src="/hero-phones.png"
                 alt="App Interface Preview"
-                className="relative z-10 w-full h-auto drop-shadow-2xl hover:scale-105 transition-transform duration-500"
+                className="relative z-10 w-full h-auto drop-shadow-2xl"
               />
             </div>
           </motion.div>
@@ -96,7 +132,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth }) => {
       </section>
 
       {/* Grid de Benefícios Moderno */}
-      <section className="relative z-10 px-6 md:px-12 pb-20 pt-10 max-w-7xl mx-auto">
+      <motion.section
+        variants={staggerContainer}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        className="relative z-10 px-6 md:px-12 pb-20 pt-10 max-w-7xl mx-auto"
+      >
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           <BenefitCard
             icon={<Calculator className="w-6 h-6" />}
@@ -124,21 +166,32 @@ const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth }) => {
             desc="Fique por dentro de mudanças na legislação, prazos e exigências do Visto de Nômade Digital."
           />
         </div>
-      </section >
+      </motion.section >
 
       {/* Hub Elite Section */}
-      < section className="relative z-10 px-6 md:px-12 pb-32 max-w-7xl mx-auto" >
-        <div className="bg-gradient-to-br from-navy-900 to-navy-950 border border-brand-yellow/20 rounded-[3rem] p-12 relative overflow-hidden">
+      <motion.section
+        initial={{ opacity: 0, scale: 0.95 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.8 }}
+        viewport={{ once: true }}
+        className="relative z-10 px-6 md:px-12 pb-32 max-w-7xl mx-auto"
+      >
+        <div className="bg-gradient-to-br from-navy-900 to-navy-950 border border-brand-yellow/20 rounded-[3rem] p-12 relative overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.3)]">
 
           {/* Background Glow */}
           <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-yellow/5 rounded-full blur-[100px] pointer-events-none" />
 
           <div className="relative z-10 grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-brand-yellow/10 rounded-lg border border-brand-yellow/20">
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+                className="inline-flex items-center gap-2 px-3 py-1 bg-brand-yellow/10 rounded-lg border border-brand-yellow/20"
+              >
                 <Star className="w-4 h-4 text-brand-yellow fill-brand-yellow" />
                 <span className="text-[10px] font-black uppercase tracking-widest text-brand-yellow">Acesso Premium</span>
-              </div>
+              </motion.div>
               <h2 className="text-4xl md:text-5xl font-black text-white tracking-tighter">Hub <span className="text-brand-yellow">Elite</span></h2>
               <p className="text-lg text-blue-100/80 leading-relaxed">
                 Aumente suas chances de aprovação com ferramentas e suporte exclusivos para membros da elite nômade.
@@ -164,7 +217,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth }) => {
             </div>
 
             {/* Visual Representation of Elite Hub (Moved Animation) */}
-            <div className="relative hidden lg:block">
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 1 }}
+              className="relative hidden lg:block"
+            >
               <div className="relative w-full aspect-square max-w-lg mx-auto scale-90">
 
                 {/* Main Decorative Circle */}
@@ -217,7 +275,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth }) => {
                         <span className="text-brand-yellow">68%</span>
                       </div>
                       <div className="h-2 w-full bg-navy-950 rounded-full overflow-hidden">
-                        <div className="h-full w-[68%] bg-brand-yellow rounded-full shadow-[0_0_10px_rgba(255,204,0,0.5)]" />
+                        <motion.div
+                          initial={{ width: 0 }}
+                          whileInView={{ width: "68%" }}
+                          transition={{ duration: 1.5, delay: 0.5 }}
+                          className="h-full bg-brand-yellow rounded-full shadow-[0_0_10px_rgba(255,204,0,0.5)]"
+                        />
                       </div>
                     </div>
 
@@ -243,10 +306,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth }) => {
                 </div>
 
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
-      </section >
+      </motion.section >
 
       {/* Footer */}
       < footer className="relative z-10 py-12 text-center text-white/20 border-t border-white/5" >
@@ -255,18 +318,20 @@ const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth }) => {
             <div className="flex flex-col items-center md:items-start gap-4">
               <div className="flex items-center gap-2 grayscale opacity-50 hover:opacity-100 transition-opacity duration-300">
                 <Plane className="w-5 h-5" />
-                <span className="font-bold tracking-tighter">NomadFlow</span>
+                <span className="font-bold tracking-tighter text-white/40">NomadFlow</span>
               </div>
               <div className="flex gap-4">
                 <SocialLink href="https://instagram.com" icon={<Instagram className="w-4 h-4" />} />
                 <SocialLink href="https://facebook.com" icon={<Facebook className="w-4 h-4" />} />
                 <SocialLink href="https://linkedin.com" icon={<Linkedin className="w-4 h-4" />} />
-                {/* TikTok usually requires a custom SVG or updated lucide, checking generic fallback */}
               </div>
             </div>
 
             <div className="flex flex-wrap justify-center gap-8 text-sm font-medium">
-              <Link to="/seja-parceiro" className="text-brand-yellow hover:text-white transition-colors font-bold">Seja um Parceiro</Link>
+              <Link to="/seja-parceiro" className="text-brand-yellow hover:text-white transition-colors font-bold group flex items-center gap-1">
+                Seja um Parceiro
+                <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+              </Link>
               <Link to="/termos" className="hover:text-white transition-colors">Termos de Uso</Link>
               <Link to="/privacidade" className="hover:text-white transition-colors">Privacidade</Link>
             </div>
@@ -280,44 +345,70 @@ const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth }) => {
 };
 
 const SocialLink = ({ href, icon }: { href: string, icon: React.ReactNode }) => (
-  <a
+  <motion.a
+    whileHover={{ scale: 1.2, rotate: 8 }}
+    whileTap={{ scale: 0.9 }}
     href={href}
     target="_blank"
     rel="noopener noreferrer"
     className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center hover:bg-brand-yellow hover:text-navy-950 transition-all duration-300"
   >
     {icon}
-  </a>
+  </motion.a>
 );
 
-const BenefitCard = ({ icon, title, desc }: { icon: any, title: string, desc: string }) => (
-  <div className="glass-card bg-navy-900/40 backdrop-blur-sm rounded-[2rem] p-8 space-y-4 group border border-white/5 hover:border-brand-yellow/30 hover:bg-navy-900/60 transition-all duration-500 hover:-translate-y-2">
-    <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-white group-hover:bg-brand-yellow group-hover:text-navy-950 transition-all duration-300">
-      {icon}
-    </div>
-    <div className="space-y-2">
-      <h3 className="text-lg font-black text-white group-hover:text-brand-yellow transition-colors">{title}</h3>
-      <p className="text-blue-100/60 text-sm leading-relaxed">{desc}</p>
-    </div>
-  </div>
-);
+const BenefitCard = ({ icon, title, desc }: { icon: any, title: string, desc: string }) => {
+  const cardVariants = {
+    hidden: { opacity: 0, y: 50 },
+    visible: { opacity: 1, y: 0 }
+  };
+
+  return (
+    <motion.div
+      variants={cardVariants}
+      whileHover={{ y: -10 }}
+      className="glass-card bg-navy-900/40 backdrop-blur-sm rounded-[2rem] p-8 space-y-4 group border border-white/5 hover:border-brand-yellow/30 hover:bg-navy-900/60 transition-all duration-500 shadow-xl"
+    >
+      <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-white group-hover:bg-brand-yellow group-hover:text-navy-950 transition-all duration-300 group-hover:rotate-12">
+        {icon}
+      </div>
+      <div className="space-y-2">
+        <h3 className="text-lg font-black text-white group-hover:text-brand-yellow transition-colors">{title}</h3>
+        <p className="text-blue-100/60 text-sm leading-relaxed">{desc}</p>
+      </div>
+    </motion.div>
+  );
+};
 
 const EliteFeature = ({ icon, title, desc }: { icon: any, title: string, desc: string }) => (
-  <div className="flex gap-4 items-start group">
-    <div className="w-10 h-10 bg-brand-yellow/10 rounded-xl flex items-center justify-center text-brand-yellow flex-shrink-0 group-hover:bg-brand-yellow group-hover:text-navy-950 transition-all">
+  <motion.div
+    initial={{ opacity: 0, x: -20 }}
+    whileInView={{ opacity: 1, x: 0 }}
+    viewport={{ once: true }}
+    className="flex gap-4 items-start group"
+  >
+    <div className="w-10 h-10 bg-brand-yellow/10 rounded-xl flex items-center justify-center text-brand-yellow flex-shrink-0 group-hover:bg-brand-yellow group-hover:text-navy-950 transition-all group-hover:scale-110">
       {icon}
     </div>
     <div>
-      <h4 className="text-white font-bold text-lg">{title}</h4>
+      <h4 className="text-white font-bold text-lg group-hover:text-brand-yellow transition-colors">{title}</h4>
       <p className="text-blue-100/60 text-sm leading-relaxed">{desc}</p>
     </div>
-  </div>
+  </motion.div>
 );
 
 const FloatingCard = ({ children, delay }: { children: React.ReactNode, delay: number }) => (
   <motion.div
-    animate={{ y: [0, -10, 0] }}
-    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay }}
+    animate={{
+      y: [0, -15, 0],
+      rotate: [0, 2, 0]
+    }}
+    transition={{
+      duration: 5,
+      repeat: Infinity,
+      ease: "easeInOut",
+      delay
+    }}
     className="glass-card bg-navy-800/80 backdrop-blur-xl p-4 rounded-2xl border border-white/10 shadow-2xl"
   >
     {children}

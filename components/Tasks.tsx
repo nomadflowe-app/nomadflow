@@ -46,6 +46,26 @@ const Tasks: React.FC = () => {
         }
     };
 
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.1,
+                delayChildren: 0.2
+            }
+        }
+    };
+
+    const itemVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: { duration: 0.5, ease: "easeOut" }
+        }
+    };
+
     const handleAddTask = () => {
         const customCount = checklist.filter(i => i.isPersonal).length;
         const isPremium = profile?.tier && profile?.tier !== 'free';
@@ -75,8 +95,13 @@ const Tasks: React.FC = () => {
     };
 
     return (
-        <div className="space-y-8 pb-32">
-            <header className="space-y-4">
+        <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="space-y-8 pb-32"
+        >
+            <motion.header variants={itemVariants} className="space-y-4">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="p-3 bg-brand-yellow/10 rounded-2xl text-brand-yellow">
@@ -108,9 +133,9 @@ const Tasks: React.FC = () => {
                         </button>
                     </div>
                 </div>
-            </header>
+            </motion.header>
 
-            <div className="flex flex-col gap-6">
+            <motion.div variants={itemVariants} className="flex flex-col gap-6">
                 {/* Group Selector */}
                 <div className="flex p-1 bg-white/5 rounded-2xl border border-white/10 relative overflow-hidden">
                     <button
@@ -147,7 +172,7 @@ const Tasks: React.FC = () => {
                         ))}
                     </div>
                 )}
-            </div>
+            </motion.div>
 
             {/* Add Task Modal / Form */}
             <AnimatePresence>
@@ -188,7 +213,7 @@ const Tasks: React.FC = () => {
                 )}
             </AnimatePresence>
 
-            <div className={`grid gap-4 ${activeGroup === 'Visto' && !isPremiumUser ? 'opacity-50 pointer-events-none' : ''}`}>
+            <motion.div variants={itemVariants} className={`grid gap-4 ${activeGroup === 'Visto' && !isPremiumUser ? 'opacity-50 pointer-events-none' : ''}`}>
                 <AnimatePresence mode="popLayout">
                     {checklist
                         .filter(item => {
@@ -200,23 +225,30 @@ const Tasks: React.FC = () => {
                             return false;
                         })
                         .map(item => (
-                            <ChecklistItemCard
+                            <motion.div
+                                layout
                                 key={item.id}
-                                item={item}
-                                onToggle={toggleDoc}
-                                onDelete={deleteItem}
-                                isLocked={!isPremiumUser && !item.isPersonal}
-                                onLockClick={() => setShowPremiumModal(true)}
-                            />
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 20 }}
+                            >
+                                <ChecklistItemCard
+                                    item={item}
+                                    onToggle={toggleDoc}
+                                    onDelete={deleteItem}
+                                    isLocked={!isPremiumUser && !item.isPersonal}
+                                    onLockClick={() => setShowPremiumModal(true)}
+                                />
+                            </motion.div>
                         ))}
                 </AnimatePresence>
-            </div>
+            </motion.div>
 
             {/* Premium Overlay for locked Visto checklist */}
             {activeGroup === 'Visto' && !isPremiumUser && (
-                <div className="mt-[-100px] relative z-20">
+                <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} className="mt-[-100px] relative z-20">
                     <ContentProtection isPremium={false} />
-                </div>
+                </motion.div>
             )}
 
             {/* Premium Modal */}
@@ -238,33 +270,36 @@ const Tasks: React.FC = () => {
             </AnimatePresence>
 
             {/* Limit Reached Modal */}
-            {showLimitModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-navy-950/80 backdrop-blur-sm">
-                    <motion.div
-                        initial={{ scale: 0.9, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        className="bg-navy-900 border border-white/10 rounded-[2rem] p-8 max-w-sm w-full text-center space-y-6 shadow-2xl"
-                    >
-                        <div className="w-16 h-16 bg-brand-yellow/20 rounded-full flex items-center justify-center mx-auto">
-                            <Lock className="w-8 h-8 text-brand-yellow" />
-                        </div>
-                        <div className="space-y-2">
-                            <h3 className="text-2xl font-black text-white">Limite Atingido</h3>
-                            <p className="text-white/60">Membros gratuitos podem adicionar até 10 metas pessoais.</p>
-                        </div>
-                        <div className="space-y-3">
-                            <button onClick={() => setShowLimitModal(false)} className="w-full py-3 bg-brand-yellow text-brand-dark rounded-xl font-black uppercase tracking-widest hover:bg-white transition-all">
-                                Entendi
-                            </button>
-                            <div className="flex items-center justify-center gap-2 text-brand-yellow/60 text-xs font-bold uppercase tracking-widest">
-                                <Crown className="w-3 h-3" />
-                                Hub Elite Ilimitado
+            <AnimatePresence>
+                {showLimitModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-navy-950/80 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="bg-navy-900 border border-white/10 rounded-[2rem] p-8 max-w-sm w-full text-center space-y-6 shadow-2xl"
+                        >
+                            <div className="w-16 h-16 bg-brand-yellow/20 rounded-full flex items-center justify-center mx-auto">
+                                <Lock className="w-8 h-8 text-brand-yellow" />
                             </div>
-                        </div>
-                    </motion.div>
-                </div>
-            )}
-        </div>
+                            <div className="space-y-2">
+                                <h3 className="text-2xl font-black text-white">Limite Atingido</h3>
+                                <p className="text-white/60">Membros gratuitos podem adicionar até 10 metas pessoais.</p>
+                            </div>
+                            <div className="space-y-3">
+                                <button onClick={() => setShowLimitModal(false)} className="w-full py-3 bg-brand-yellow text-brand-dark rounded-xl font-black uppercase tracking-widest hover:bg-white transition-all">
+                                    Entendi
+                                </button>
+                                <div className="flex items-center justify-center gap-2 text-brand-yellow/60 text-xs font-bold uppercase tracking-widest">
+                                    <Crown className="w-3 h-3" />
+                                    Hub Elite Ilimitado
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+        </motion.div>
     );
 };
 
