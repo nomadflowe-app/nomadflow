@@ -51,13 +51,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth }) => {
             </div>
 
             <h1
-              className="font-black text-white leading-none tracking-tighter"
-              style={{ fontSize: 'clamp(2rem, 5vw, 4rem)' }}
+              className="font-black text-white leading-[1.1] tracking-tighter"
+              style={{ fontSize: 'clamp(2.5rem, 5.5vw, 4.2rem)' }}
             >
-              <br /> Organize sua <br />
-              <br /> jornada rumo ao <br />
-              <br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-yellow via-white to-brand-yellow bg-[200%_auto] animate-shine">Visto de</span> Nômade <br />
-              <br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-yellow via-white to-brand-yellow bg-[200%_auto] animate-shine">Digital na Espanha</span> <br />
+              Organize sua <br />
+              jornada rumo ao <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-yellow via-white to-brand-yellow bg-[200%_auto] animate-shine">Visto de Nômade</span> <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-yellow via-white to-brand-yellow bg-[200%_auto] animate-shine">Digital na Espanha</span>
             </h1>
 
             <p className="text-base md:text-lg text-blue-100/80 font-medium leading-relaxed max-w-xl mx-auto lg:mx-0">
