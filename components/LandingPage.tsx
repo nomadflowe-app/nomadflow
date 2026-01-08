@@ -36,30 +36,31 @@ const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth }) => {
 
       {/* Hero Section Split */}
       <section className="relative z-10 min-h-screen flex items-center pt-40 md:pt-48 px-6 md:px-12 max-w-7xl mx-auto">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center w-full">
+        <div className="grid lg:grid-cols-2 gap-8 items-center w-full">
 
           {/* Left: Copy & CTA */}
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="space-y-8 text-center lg:text-left"
+            className="space-y-8 text-center lg:text-left pr-4"
           >
             <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/5 border border-brand-yellow/30 rounded-full shadow-[0_0_15px_rgba(255,204,0,0.1)] mx-auto lg:mx-0">
               <span className="w-2 h-2 bg-brand-yellow rounded-full animate-pulse" />
               <span className="text-[10px] font-black text-brand-yellow uppercase tracking-[0.2em]">Agora disponível para Brasileiros</span>
             </div>
 
-            <h1 className="text-4xl md:text-5xl lg:text-7xl font-black text-white leading-[1.1] tracking-tighter">
+            <h1
+              className="font-black text-white leading-[1.1] tracking-tighter"
+              style={{ fontSize: 'clamp(2.5rem, 5.5vw, 4.5rem)' }}
+            >
               Organize sua <br />
               jornada rumo ao <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-yellow via-white to-brand-yellow bg-[200%_auto] animate-shine">Visto de</span> <br />
-              Nômade <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-yellow via-white to-brand-yellow bg-[200%_auto] animate-shine">Digital na</span> <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-yellow via-white to-brand-yellow bg-[200%_auto] animate-shine">Espanha.</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-yellow via-white to-brand-yellow bg-[200%_auto] animate-shine">Visto de Nômade</span> <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-yellow via-white to-brand-yellow bg-[200%_auto] animate-shine">Digital na Espanha.</span>
             </h1>
 
-            <p className="text-lg text-blue-100/80 font-medium leading-relaxed max-w-xl mx-auto lg:mx-0">
+            <p className="text-base md:text-lg text-blue-100/80 font-medium leading-relaxed max-w-xl mx-auto lg:mx-0">
               Tudo o que você precisa para se organizar, planejar e solicitar o Visto de Nômade Digital na Espanha, em um único lugar.
             </p>
 
@@ -79,9 +80,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth }) => {
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 1, delay: 0.2 }}
-            className="relative hidden lg:block"
+            className="relative hidden lg:flex justify-center items-center"
           >
-            <div className="relative w-full max-w-2xl mx-auto scale-110 origin-center">
+            <div className="relative w-full max-w-xl scale-110 origin-center">
               <div className="absolute inset-0 bg-brand-yellow/20 blur-[100px] rounded-full opacity-50 animate-pulse-slow" />
               <img
                 src="/hero-phones.png"
@@ -123,10 +124,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth }) => {
             desc="Fique por dentro de mudanças na legislação, prazos e exigências do Visto de Nômade Digital."
           />
         </div>
-      </section>
+      </section >
 
       {/* Hub Elite Section */}
-      <section className="relative z-10 px-6 md:px-12 pb-32 max-w-7xl mx-auto">
+      < section className="relative z-10 px-6 md:px-12 pb-32 max-w-7xl mx-auto" >
         <div className="bg-gradient-to-br from-navy-900 to-navy-950 border border-brand-yellow/20 rounded-[3rem] p-12 relative overflow-hidden">
 
           {/* Background Glow */}
@@ -245,10 +246,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth }) => {
             </div>
           </div>
         </div>
-      </section>
+      </section >
 
       {/* Footer */}
-      <footer className="relative z-10 py-12 text-center text-white/20 border-t border-white/5">
+      < footer className="relative z-10 py-12 text-center text-white/20 border-t border-white/5" >
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex flex-col items-center md:items-start gap-4">
@@ -273,8 +274,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth }) => {
             <p className="text-xs">© {new Date().getFullYear()} NomadFlow.</p>
           </div>
         </div>
-      </footer>
-    </div>
+      </footer >
+    </div >
   );
 };
 
