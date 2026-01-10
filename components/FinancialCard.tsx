@@ -11,6 +11,7 @@ interface FinancialCardProps {
     isEditing: boolean;
     setIsEditing: (isEditing: boolean) => void;
     percentage: number;
+    variants?: any;
 }
 
 export const FinancialCard: React.FC<FinancialCardProps> = ({
@@ -18,7 +19,8 @@ export const FinancialCard: React.FC<FinancialCardProps> = ({
     onSave,
     isEditing,
     setIsEditing,
-    percentage
+    percentage,
+    variants
 }) => {
     const [editedGoal, setEditedGoal] = useState<UserGoal>(goal);
 
@@ -41,7 +43,7 @@ export const FinancialCard: React.FC<FinancialCardProps> = ({
 
     return (
         <>
-            <motion.div className="glass-card rounded-[2.5rem] p-8 h-full flex flex-col justify-between">
+            <motion.div variants={variants} className="glass-card rounded-[2.5rem] p-8 flex flex-col justify-between">
                 <div>
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-4">
@@ -79,7 +81,7 @@ export const FinancialCard: React.FC<FinancialCardProps> = ({
                 </div>
             </motion.div>
 
-            <motion.div className="glass-card rounded-[2.5rem] p-8 flex flex-col md:flex-row items-center gap-8 h-full">
+            <motion.div variants={variants} className="glass-card rounded-[2.5rem] p-8 flex flex-col md:flex-row items-center gap-8">
                 <div className="flex-1 space-y-4 w-full">
                     <div className="flex items-center gap-2 text-white"><TrendingUp className="w-5 h-5 text-brand-yellow" /><span className="text-sm font-bold uppercase tracking-wider">Reserva Financeira</span></div>
 

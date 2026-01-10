@@ -139,22 +139,21 @@ const Dashboard: React.FC = () => {
         )}
       </AnimatePresence>
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid lg:grid-cols-2 gap-6 items-start">
         <motion.div variants={itemVariants}>
           <CurrencyConverter />
         </motion.div>
 
-        <motion.div variants={itemVariants}>
-          <FinancialCard
-            goal={goal}
-            onSave={handleSaveGoal}
-            isEditing={isEditingGoal}
-            setIsEditing={setIsEditingGoal}
-            percentage={financialPercentage}
-          />
-        </motion.div>
+        <FinancialCard
+          goal={goal}
+          onSave={handleSaveGoal}
+          isEditing={isEditingGoal}
+          setIsEditing={setIsEditingGoal}
+          percentage={financialPercentage}
+          variants={itemVariants}
+        />
 
-        <motion.section variants={itemVariants} className="space-y-6 h-full flex flex-col">
+        <motion.section variants={itemVariants} className="space-y-6">
           <ContentProtection isPremium={!!isPremiumUser}>
             <div className="flex flex-col gap-6">
               <div className="space-y-4">
