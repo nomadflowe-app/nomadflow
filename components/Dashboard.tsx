@@ -139,7 +139,7 @@ const Dashboard: React.FC = () => {
         )}
       </AnimatePresence>
 
-      <div className="grid lg:grid-cols-2 gap-6 items-start">
+      <div className="grid lg:grid-cols-2 gap-6">
         <motion.div variants={itemVariants}>
           <CurrencyConverter />
         </motion.div>
