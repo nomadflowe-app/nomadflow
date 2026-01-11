@@ -89,7 +89,7 @@ const CurrencyConverter: React.FC = () => {
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="glass-card rounded-[2.5rem] p-6 md:p-8 pb-14 border-white/10 flex flex-col items-center gap-6 relative overflow-hidden h-full"
+            className="glass-card rounded-[2.5rem] p-6 border-white/10 flex flex-col items-center gap-6 relative overflow-hidden h-full"
         >
             <div className="w-full flex items-center gap-4 border-b border-white/5 pb-4">
                 <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-brand-yellow flex items-center justify-center shadow-[0_0_20px_rgba(255,204,0,0.2)]">

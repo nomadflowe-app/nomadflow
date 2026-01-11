@@ -36,8 +36,8 @@ serve(async (req) => {
 
             // Mapeamento de IDs para Tiers
             const tierMap: Record<string, string> = {
-                'price_1SlmxCDi3wLcfDaXrHbD0oQ7': 'mensal',
-                'price_1SlmzmDi3wLcfDaX6KdV8faz': 'anual',
+                'price_1SniJeD1nKpsWc8ow9unN1Cb': 'mensal',
+                'price_1Sn6uwDi3wLcfDaXQWfWARiU': 'anual',
                 'price_1Sln2yDi3wLcfDaX14HFPOPg': 'pro'
             }
 
@@ -52,7 +52,10 @@ serve(async (req) => {
 
                 const { error } = await supabaseAdmin
                     .from('profiles')
-                    .update({ tier: tier })
+                    .update({
+                        tier: tier,
+                        subscribed_at: new Date().toISOString()
+                    })
                     .eq('user_id', userId)
 
                 if (error) throw error

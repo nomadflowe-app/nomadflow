@@ -105,6 +105,7 @@ export async function getUserProfile(userId: string) {
         avatarUrl: data.avatar_url || '',
         tier: data.tier || 'free',
         isAdmin: data.is_admin || false,
+        subscribedAt: data.subscribed_at,
         isOnboarded: true // Se existe no banco, já fez onboarding
       } as UserProfile;
     }
@@ -362,7 +363,8 @@ export async function createTutorial(tutorial: any) {
     instructor: tutorial.instructor,
     duration: tutorial.duration,
     thumbnail: tutorial.thumbnail,
-    youtube_id: tutorial.video_url || tutorial.youtube_id // Aceita ambos para compatibilidade
+    youtube_id: tutorial.video_url || tutorial.youtube_id, // Aceita ambos para compatibilidade
+    is_dripped: tutorial.isDripped || false
   };
 
   const { data, error } = await supabase
@@ -386,6 +388,7 @@ export async function updateTutorial(id: string, updates: any) {
   if (updates.duration) dataToUpdate.duration = updates.duration;
   if (updates.thumbnail) dataToUpdate.thumbnail = updates.thumbnail;
   if (updates.video_url || updates.youtube_id) dataToUpdate.youtube_id = updates.video_url || updates.youtube_id;
+  if (updates.isDripped !== undefined) dataToUpdate.is_dripped = updates.isDripped;
 
   const { data, error } = await supabase
     .from('tutorials')

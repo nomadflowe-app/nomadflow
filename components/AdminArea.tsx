@@ -60,6 +60,7 @@ export const AdminArea: React.FC = () => {
         site_url: '',
         discount_code: '',
         is_exclusive: false,
+        is_dripped: false,
         notification_type: 'info',
         action_url: ''
     });
@@ -132,7 +133,8 @@ export const AdminArea: React.FC = () => {
                 instructor: item.instructor,
                 duration: item.duration,
                 thumbnail: item.thumbnail,
-                video_url: item.youtube_id // Mapeia do banco para o form
+                video_url: item.youtube_id, // Mapeia do banco para o form
+                is_dripped: item.is_dripped || false
             });
         } else if (activeTab === 'Parceiros') {
             setFormData({
@@ -207,7 +209,8 @@ export const AdminArea: React.FC = () => {
                         instructor: formData.instructor,
                         duration: formData.duration,
                         thumbnail: formData.thumbnail,
-                        video_url: videoId
+                        video_url: videoId,
+                        isDripped: formData.is_dripped
                     });
                     success = !!result;
                 } else if (activeTab === 'Parceiros') {
@@ -255,7 +258,8 @@ export const AdminArea: React.FC = () => {
                     instructor: formData.instructor || 'NomadFlow Team',
                     duration: formData.duration || '10 min',
                     thumbnail: formData.thumbnail || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=800',
-                    video_url: videoId
+                    video_url: videoId,
+                    isDripped: formData.is_dripped
                 });
                 success = !!result;
             } else if (activeTab === 'Parceiros') {
@@ -391,6 +395,11 @@ export const AdminArea: React.FC = () => {
                                                 {activeTab === 'Comunidade' && item.is_elite && (
                                                     <span className="text-[9px] font-black uppercase tracking-widest text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded-md">
                                                         Elite
+                                                    </span>
+                                                )}
+                                                {activeTab === 'Tutoriais' && item.is_dripped && (
+                                                    <span className="text-[9px] font-black uppercase tracking-widest text-orange-400 bg-orange-400/10 px-2 py-0.5 rounded-md">
+                                                        7 Dias (Drip)
                                                     </span>
                                                 )}
                                             </div>
@@ -647,6 +656,16 @@ export const AdminArea: React.FC = () => {
                                                 value={formData.video_url}
                                                 onChange={e => setFormData({ ...formData, video_url: e.target.value })}
                                             />
+                                        </div>
+                                        <div className="flex items-center gap-3 px-2">
+                                            <input
+                                                type="checkbox"
+                                                id="dripped"
+                                                className="w-5 h-5 rounded-md border-white/10 bg-white/5 checked:bg-orange-500"
+                                                checked={formData.is_dripped}
+                                                onChange={e => setFormData({ ...formData, is_dripped: e.target.checked })}
+                                            />
+                                            <label htmlFor="dripped" className="text-xs font-bold text-white cursor-pointer select-none">Liberação após 7 dias? (Dripping)</label>
                                         </div>
                                     </>
                                 )}

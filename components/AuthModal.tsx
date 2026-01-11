@@ -65,6 +65,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => 
   };
 
   const handleGoogleLogin = async () => {
+    if (!acceptedTerms) {
+      setError('Você precisa aceitar os Termos de Uso e a Política de Privacidade para continuar.');
+      return;
+    }
+
     try {
       const { error } = await signInWithGoogle();
       if (error) throw error;
@@ -186,30 +191,27 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => 
               />
             </div>
 
-            {!isLogin && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex items-start gap-3 px-2 py-1"
-              >
-                <div className="relative flex items-center mt-1">
-                  <input
-                    type="checkbox"
-                    id="terms"
-                    required={!isLogin}
-                    checked={acceptedTerms}
-                    onChange={(e) => setAcceptedTerms(e.target.checked)}
-                    className="w-5 h-5 rounded-lg bg-black/40 border border-white/10 checked:bg-brand-yellow checked:border-brand-yellow appearance-none cursor-pointer transition-all"
-                  />
-                  {acceptedTerms && (
-                    <CheckCircle2 className="w-3.5 h-3.5 text-brand-dark absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
-                  )}
-                </div>
-                <label htmlFor="terms" className="text-xs text-blue-100/60 font-medium leading-relaxed cursor-pointer select-none">
-                  Eu li e aceito os <Link to="/termos" target="_blank" className="text-brand-yellow hover:underline">Termos de Uso</Link> e a <Link to="/privacidade" target="_blank" className="text-brand-yellow hover:underline">Política de Privacidade</Link>.
-                </label>
-              </motion.div>
-            )}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex items-start gap-3 px-2 py-1"
+            >
+              <div className="relative flex items-center mt-1">
+                <input
+                  type="checkbox"
+                  id="terms"
+                  checked={acceptedTerms}
+                  onChange={(e) => setAcceptedTerms(e.target.checked)}
+                  className="w-5 h-5 rounded-lg bg-black/40 border border-white/10 checked:bg-brand-yellow checked:border-brand-yellow appearance-none cursor-pointer transition-all"
+                />
+                {acceptedTerms && (
+                  <CheckCircle2 className="w-3.5 h-3.5 text-brand-dark absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
+                )}
+              </div>
+              <label htmlFor="terms" className="text-xs text-blue-100/60 font-medium leading-relaxed cursor-pointer select-none">
+                Eu li e aceito os <Link to="/termos" target="_blank" className="text-brand-yellow hover:underline">Termos de Uso</Link> e a <Link to="/privacidade" target="_blank" className="text-brand-yellow hover:underline">Política de Privacidade</Link>.
+              </label>
+            </motion.div>
 
             {error && (
               <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-2 text-red-400 text-xs font-bold bg-red-500/10 p-4 rounded-xl border border-red-500/10">

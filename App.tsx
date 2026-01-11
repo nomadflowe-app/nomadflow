@@ -122,8 +122,12 @@ const MainContent: React.FC = () => {
       window.history.replaceState({}, document.title, "/");
     }
 
+    const handleChangeView = (e: any) => setActiveView(e.detail);
+    document.addEventListener('change-view', handleChangeView);
+
     return () => {
       subscription.unsubscribe();
+      document.removeEventListener('change-view', handleChangeView);
       clearTimeout(safetyTimeout);
     };
   }, []);

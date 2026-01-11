@@ -17,7 +17,7 @@ const PLANS = [
     description: 'Ideal para quem busca rapidez e flexibilidade.',
     icon: <Zap className="w-5 h-5" />,
     color: 'from-blue-400 to-blue-600',
-    priceId: 'price_1SlmxCDi3wLcfDaXrHbD0oQ7',
+    priceId: 'price_1SniJeD1nKpsWc8ow9unN1Cb',
     features: ['Checklist do Visto', 'Guias & Tutoriais', 'Comunidade VIP', 'Templates Editáveis']
   },
   {
@@ -28,7 +28,7 @@ const PLANS = [
     description: 'O melhor custo-benefício para sua jornada.',
     icon: <Flame className="w-5 h-5" />,
     color: 'from-gold-400 to-gold-600',
-    priceId: 'price_1SlmzmDi3wLcfDaX6KdV8faz',
+    priceId: 'price_1Sn6uwDi3wLcfDaXQWfWARiU',
     popular: true,
     features: ['Tudo do Mensal', 'Templates Editáveis', 'Suporte Prioritário', 'Economia de 50%']
   }

@@ -153,7 +153,7 @@ const Dashboard: React.FC = () => {
           variants={itemVariants}
         />
 
-        <motion.section variants={itemVariants} className="space-y-6">
+        <motion.div variants={itemVariants}>
           <ContentProtection isPremium={!!isPremiumUser}>
             <div className="flex flex-col gap-6">
               <div className="space-y-4">
@@ -177,16 +177,27 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
           </ContentProtection>
-
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            className="p-6 rounded-[2rem] border border-white/10 bg-white/5 flex flex-col items-center justify-center text-center gap-3 h-full min-h-[200px] transition-colors hover:bg-white/10"
-          >
-            <h3 className="text-white font-bold">Próximos Passos?</h3>
-            <p className="text-white/60 text-sm max-w-xs">Acesse a aba <span className="text-brand-yellow font-bold">Tarefas</span> para gerenciar seu checklist detalhado.</p>
-          </motion.div>
-        </motion.section>
+        </motion.div>
       </div>
+
+      <motion.div
+        variants={itemVariants}
+        whileHover={{ scale: 1.01 }}
+        className="p-6 rounded-[2rem] border border-white/10 bg-white/5 flex flex-col sm:flex-row items-center justify-between text-center sm:text-left gap-4 transition-colors hover:bg-white/10 mt-8"
+      >
+        <div className="space-y-1">
+          <h3 className="text-white font-bold">Próximos Passos?</h3>
+          <p className="text-white/60 text-sm">Acesse a aba <span className="text-brand-yellow font-bold">Tarefas</span> para gerenciar seu checklist detalhado.</p>
+        </div>
+        <button
+          onClick={() => {
+            document.dispatchEvent(new CustomEvent('change-view', { detail: 'Tasks' }));
+          }}
+          className="px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-all uppercase tracking-widest"
+        >
+          Ir para Tarefas
+        </button>
+      </motion.div>
     </motion.div>
   );
 };

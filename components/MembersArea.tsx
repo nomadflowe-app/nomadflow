@@ -145,6 +145,19 @@ const MembersArea: React.FC = () => {
     return profile?.tier && profile?.tier !== 'free';
   });
 
+  const getDrippingDays = (contentIsDripped: boolean): number | undefined => {
+    if (!contentIsDripped || !profile?.subscribedAt) return undefined;
+
+    const subDate = new Date(profile.subscribedAt);
+    const now = new Date();
+    const diffTime = now.getTime() - subDate.getTime();
+    const daysSinceSub = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    const daysRemaining = 7 - daysSinceSub;
+
+    return daysRemaining > 0 ? daysRemaining : undefined;
+  };
+
   const themeGuides = useMemo(() =>
     ALL_GUIDES.filter(g => g.themeId === activeThemeId),
     [activeThemeId]);
@@ -377,7 +390,7 @@ const MembersArea: React.FC = () => {
                         instructor={tutorial.instructor}
                         duration={tutorial.duration}
                         image={tutorial.thumbnail}
-                        onClick={() => setActiveVideo(tutorial)}
+                        onClick={getDrippingDays(tutorial.is_dripped) ? undefined : () => setActiveVideo(tutorial)}
                       />
                     ))}
                   </div>
@@ -438,58 +451,64 @@ const MembersArea: React.FC = () => {
           )}
         </AnimatePresence>
 
-        {/* MODAL DETALHE DO GUIA */}
         <AnimatePresence>
           {selectedGuide && (
             <div className="fixed inset-0 z-[1000] bg-navy-950/80 backdrop-blur-xl flex items-center justify-center p-6">
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                className="glass-card bg-realWhite rounded-[3rem] p-10 w-full max-w-2xl max-h-[85vh] overflow-y-auto border-black/5 shadow-2xl space-y-8 no-scrollbar"
-              >
-                <div className="flex justify-between items-start">
-                  <div className="space-y-2">
-                    <span className="text-[10px] font-black text-white uppercase tracking-widest bg-white/10 px-3 py-1 rounded-lg">{selectedGuide.category}</span>
-                    <h2 className="text-3xl font-black text-navy-50 tracking-tighter">{selectedGuide.title}</h2>
-                  </div>
-                  <button onClick={() => setSelectedGuide(null)} className="p-3 bg-brand-yellow rounded-2xl text-navy-950 hover:bg-white transition-all shadow-lg">
-                    <X className="w-6 h-6" />
-                  </button>
-                </div>
-                <div className="space-y-10">
-                  <section className="space-y-4">
-                    <h4 className="text-xs font-black text-navy-50/30 uppercase tracking-[0.2em] flex items-center gap-2"><Info className="w-4 h-4 text-brand-yellow" /> Contexto Estratégico</h4>
-                    <p className="text-lg text-navy-50 font-medium leading-relaxed italic border-l-3 border-brand-yellow pl-6 py-1">"{selectedGuide.content.context}"</p>
-                  </section>
-                  <div className="grid md:grid-cols-2 gap-10">
-                    <section className="space-y-4">
-                      <h4 className="text-xs font-black text-navy-50/30 uppercase tracking-[0.2em] flex items-center gap-2"><CheckCircle className="w-4 h-4 text-brand-yellow" /> Requisitos</h4>
-                      <ul className="space-y-3">
-                        {selectedGuide.content.requirements.map((req, i) => (
-                          <li key={i} className="flex gap-3 text-sm text-navy-50 font-bold items-start"><div className="w-1.5 h-1.5 bg-brand-yellow rounded-full mt-1.5 flex-shrink-0" /> <span className="flex-1">{renderItemWithLinks(req)}</span></li>
-                        ))}
-                      </ul>
-                    </section>
-                    <section className="space-y-4">
-                      <h4 className="text-xs font-black text-navy-50/30 uppercase tracking-[0.2em] flex items-center gap-2"><ArrowRight className="w-4 h-4 text-brand-yellow" /> Plano de Ação</h4>
-                      <ul className="space-y-3">
-                        {selectedGuide.content.steps.map((step, i) => (
-                          <li key={i} className="flex gap-4 text-sm text-navy-50/60 font-medium items-start"><span className="text-[10px] font-black text-white bg-black/5 w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0">{i + 1}</span> <span className="flex-1">{renderItemWithLinks(step)}</span></li>
-                        ))}
-                      </ul>
-                    </section>
-                  </div>
-                  {selectedGuide.content.important && (
-                    <div className="p-8 bg-brand-yellow/5 border-2 border-dashed border-brand-yellow/20 rounded-[2.5rem] flex gap-5">
-                      <Bookmark className="w-8 h-8 text-brand-yellow flex-shrink-0 mt-1" />
-                      <div className="space-y-1">
-                        <p className="text-[10px] font-black text-brand-yellow uppercase tracking-widest">Nota Importante</p>
-                        <p className="text-sm text-navy-50 font-bold italic leading-relaxed">{renderItemWithLinks(selectedGuide.content.important)}</p>
+              <div className="w-full max-w-2xl">
+                <ContentProtection
+                  isPremium={isPremiumUser}
+                  drippingDays={selectedGuide.category === 'Templates' ? getDrippingDays(true) : undefined}
+                >
+                  <motion.div
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="glass-card bg-realWhite rounded-[3rem] p-10 w-full max-h-[85vh] overflow-y-auto border-black/5 shadow-2xl space-y-8 no-scrollbar"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="space-y-2">
+                        <span className="text-[10px] font-black text-white uppercase tracking-widest bg-white/10 px-3 py-1 rounded-lg">{selectedGuide.category}</span>
+                        <h2 className="text-3xl font-black text-navy-50 tracking-tighter">{selectedGuide.title}</h2>
                       </div>
+                      <button onClick={() => setSelectedGuide(null)} className="p-3 bg-brand-yellow rounded-2xl text-navy-950 hover:bg-white transition-all shadow-lg">
+                        <X className="w-6 h-6" />
+                      </button>
                     </div>
-                  )}
-                </div>
-              </motion.div>
+                    <div className="space-y-10">
+                      <section className="space-y-4">
+                        <h4 className="text-xs font-black text-navy-50/30 uppercase tracking-[0.2em] flex items-center gap-2"><Info className="w-4 h-4 text-brand-yellow" /> Contexto Estratégico</h4>
+                        <p className="text-lg text-navy-50 font-medium leading-relaxed italic border-l-3 border-brand-yellow pl-6 py-1">"{selectedGuide.content.context}"</p>
+                      </section>
+                      <div className="grid md:grid-cols-2 gap-10">
+                        <section className="space-y-4">
+                          <h4 className="text-xs font-black text-navy-50/30 uppercase tracking-[0.2em] flex items-center gap-2"><CheckCircle className="w-4 h-4 text-brand-yellow" /> Requisitos</h4>
+                          <ul className="space-y-3">
+                            {selectedGuide.content.requirements.map((req, i) => (
+                              <li key={i} className="flex gap-3 text-sm text-navy-50 font-bold items-start"><div className="w-1.5 h-1.5 bg-brand-yellow rounded-full mt-1.5 flex-shrink-0" /> <span className="flex-1">{renderItemWithLinks(req)}</span></li>
+                            ))}
+                          </ul>
+                        </section>
+                        <section className="space-y-4">
+                          <h4 className="text-xs font-black text-navy-50/30 uppercase tracking-[0.2em] flex items-center gap-2"><ArrowRight className="w-4 h-4 text-brand-yellow" /> Plano de Ação</h4>
+                          <ul className="space-y-3">
+                            {selectedGuide.content.steps.map((step, i) => (
+                              <li key={i} className="flex gap-4 text-sm text-navy-50/60 font-medium items-start"><span className="text-[10px] font-black text-white bg-black/5 w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0">{i + 1}</span> <span className="flex-1">{renderItemWithLinks(step)}</span></li>
+                            ))}
+                          </ul>
+                        </section>
+                      </div>
+                      {selectedGuide.content.important && (
+                        <div className="p-8 bg-brand-yellow/5 border-2 border-dashed border-brand-yellow/20 rounded-[2.5rem] flex gap-5">
+                          <Bookmark className="w-8 h-8 text-brand-yellow flex-shrink-0 mt-1" />
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-black text-brand-yellow uppercase tracking-widest">Nota Importante</p>
+                            <p className="text-sm text-navy-50 font-bold italic leading-relaxed">{renderItemWithLinks(selectedGuide.content.important)}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                </ContentProtection>
+              </div>
             </div>
           )}
         </AnimatePresence>
@@ -497,47 +516,48 @@ const MembersArea: React.FC = () => {
         {/* MODAL DO PLAYER DE VÍDEO */}
         <AnimatePresence>
           {activeVideo && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[1500] bg-navy-950/95 backdrop-blur-2xl flex items-center justify-center p-4"
-            >
-              <div className="w-full max-w-4xl aspect-video bg-black rounded-[2rem] overflow-hidden shadow-2xl relative border border-white/10">
-                <button
-                  onClick={() => setActiveVideo(null)}
-                  className="absolute top-6 right-6 z-10 p-2 bg-black/40 hover:bg-black/60 rounded-full text-white transition-all"
+            <div className="fixed inset-0 z-[1500] bg-navy-950/95 backdrop-blur-2xl flex items-center justify-center p-4">
+              <div className="w-full max-w-4xl">
+                <ContentProtection
+                  isPremium={isPremiumUser}
+                  drippingDays={getDrippingDays(activeVideo.is_dripped)}
                 >
-                  <X className="w-6 h-6" />
-                </button>
-                {(() => {
-                  // Safety check: extract ID if a full URL was saved by mistake
-                  const rawId = activeVideo.youtubeId || '';
-                  let tempId = rawId;
-                  try {
-                    if (rawId.includes('http') || rawId.includes('youtube') || rawId.includes('youtu.be')) {
-                      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-                      const match = rawId.match(regExp);
-                      if (match && match[2].length === 11) {
-                        tempId = match[2];
-                      }
-                    }
-                  } catch (e) { console.warn('Error parsing video ID', e); }
+                  <div className="aspect-video bg-black rounded-[2rem] overflow-hidden shadow-2xl relative border border-white/10">
+                    <button
+                      onClick={() => setActiveVideo(null)}
+                      className="absolute top-6 right-6 bg-navy-950/60 backdrop-blur-md p-4 rounded-2xl text-white hover:bg-brand-yellow hover:text-navy-950 transition-all z-10"
+                    >
+                      <X className="w-6 h-6" />
+                    </button>
+                    {(() => {
+                      const rawId = activeVideo.youtube_id || '';
+                      let tempId = rawId;
+                      try {
+                        if (rawId.includes('http') || rawId.includes('youtube') || rawId.includes('youtu.be')) {
+                          const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+                          const match = rawId.match(regExp);
+                          if (match && match[2].length === 11) {
+                            tempId = match[2];
+                          }
+                        }
+                      } catch (e) { console.warn('Error parsing video ID', e); }
 
-                  return (
-                    <iframe
-                      width="100%"
-                      height="100%"
-                      src={`https://www.youtube.com/embed/${tempId}?autoplay=1&modestbranding=1&rel=0&iv_load_policy=3&controls=1&showinfo=0`}
-                      title={activeVideo.title}
-                      frameBorder="0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    ></iframe>
-                  );
-                })()}
+                      return (
+                        <iframe
+                          width="100%"
+                          height="100%"
+                          src={`https://www.youtube.com/embed/${tempId}?autoplay=1&modestbranding=1&rel=0&iv_load_policy=3&controls=1&showinfo=0`}
+                          title={activeVideo.title}
+                          frameBorder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        ></iframe>
+                      );
+                    })()}
+                  </div>
+                </ContentProtection>
               </div>
-            </motion.div>
+            </div>
           )}
         </AnimatePresence>
 
@@ -643,8 +663,8 @@ const MembersArea: React.FC = () => {
             </div>
           )}
         </AnimatePresence>
-      </div>
-    </ContentProtection>
+      </div >
+    </ContentProtection >
   );
 };
 
@@ -687,12 +707,20 @@ const WorkshopCard = ({ title, instructor, duration, image, onClick }: any) => (
       </div>
 
       <div className="mt-auto pt-4 border-t border-white/5 flex justify-between items-center gap-4">
-        <span className="text-[10px] font-black text-brand-yellow uppercase tracking-widest group-hover:text-white transition-colors">
-          Assistir Aula
-        </span>
-        <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/50 group-hover:bg-brand-yellow group-hover:text-navy-950 transition-all shadow-lg">
-          <Play className="w-5 h-5 ml-0.5" />
-        </div>
+        {onClick ? (
+          <>
+            <span className="text-[10px] font-black text-brand-yellow uppercase tracking-widest group-hover:text-white transition-colors">
+              Assistir Aula
+            </span>
+            <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/50 group-hover:bg-brand-yellow group-hover:text-navy-950 transition-all shadow-lg">
+              <Play className="w-5 h-5 ml-0.5" />
+            </div>
+          </>
+        ) : (
+          <div className="flex items-center gap-2 text-[10px] font-black text-orange-400 uppercase tracking-widest animate-pulse">
+            <Clock className="w-3 h-3" /> Liberado em Breve
+          </div>
+        )}
       </div>
     </div>
   </button>
