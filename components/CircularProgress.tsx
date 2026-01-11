@@ -30,15 +30,19 @@ const CircularProgress: React.FC<CircularProgressProps> = ({
         }}
       />
 
-      <svg className="transform -rotate-90 relative z-10" width={size} height={size}>
+      <svg
+        className="transform -rotate-90 relative z-10 overflow-visible"
+        width={size}
+        height={size}
+      >
         <defs>
           <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#FFC400" />
             <stop offset="50%" stopColor="#FACC15" />
             <stop offset="100%" stopColor="#FB923C" />
           </linearGradient>
-          <filter id="glow">
-            <feGaussianBlur stdDeviation="2" result="coloredBlur" />
+          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="4" result="coloredBlur" />
             <feMerge>
               <feMergeNode in="coloredBlur" />
               <feMergeNode in="SourceGraphic" />
