@@ -80,7 +80,6 @@ BEGIN
         likes integer default 0,
         comments integer default 0,
         is_elite boolean default false,
-        is_elite boolean default false,
         created_at timestamp with time zone default now()
     );
 
@@ -104,8 +103,6 @@ BEGIN
         whatsapp text,
         site_url text,
         discount_code text,
-        logo_url text,
-        is_exclusive boolean default false,
         logo_url text,
         is_exclusive boolean default false,
         created_at timestamp with time zone default now()
@@ -136,12 +133,11 @@ alter table public.profiles enable row level security;
 alter table public.checklists enable row level security;
 alter table public.guides enable row level security;
 alter table public.tutorials enable row level security;
-alter table public.tutorials enable row level security;
 alter table public.community_posts enable row level security;
-alter table public.community_comments enable row level security;
 alter table public.community_comments enable row level security;
 alter table public.partners enable row level security;
 alter table public.post_likes enable row level security;
+alter table public.notifications enable row level security;
 
 -- 3. Políticas de Segurança (Limpeza e Recriação)
 DO $$ 
