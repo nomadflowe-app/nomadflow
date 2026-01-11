@@ -147,6 +147,7 @@ BEGIN
     create policy "Users can manage own profile" on public.profiles for all using (auth.uid() = user_id);
 
     drop policy if exists "Users can manage own checklist" on public.checklists;
+    drop policy if exists "Public Access Checklists for ALL" on public.checklists;
     create policy "Users can manage own checklist" on public.checklists for all using (auth.uid() = user_id);
 
     -- Guias
