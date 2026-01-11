@@ -144,6 +144,7 @@ DO $$
 BEGIN
     -- Perfis e Checklists
     drop policy if exists "Users can manage own profile" on public.profiles;
+    drop policy if exists "Public Access Profiles for ALL" on public.profiles;
     create policy "Users can manage own profile" on public.profiles for all using (auth.uid() = user_id);
 
     drop policy if exists "Users can manage own checklist" on public.checklists;
