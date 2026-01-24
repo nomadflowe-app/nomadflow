@@ -10,14 +10,21 @@ import { UserProfile } from '../types';
 */
 
 // Carrega variáveis com fallback seguro para não quebrar a compilação
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://zskjfjrxgmsapfqibmia.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'no-key-found';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (supabaseAnonKey === 'no-key-found') {
-  console.warn("⚠️ VITE_SUPABASE_ANON_KEY não encontrada nas variáveis de ambiente!");
+if (!supabaseUrl || !supabaseAnonKey || supabaseUrl === 'https://your-project.supabase.co') {
+  console.error(
+    "🚨 CRITICAL ERROR: Supabase environment variables are missing! \n" +
+    "Please create a .env file based on .env.example and restart the server."
+  );
+  // Fallback to prevent crash, but app won't work
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(
+  supabaseUrl || 'https://placeholder.supabase.co',
+  supabaseAnonKey || 'placeholder-key'
+);
 
 // --- ERROR HANDLING SYSTEM ---
 let onDatabaseErrorCallback: (() => void) | null = null;

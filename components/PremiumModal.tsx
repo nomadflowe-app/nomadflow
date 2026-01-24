@@ -28,7 +28,7 @@ const PLANS = [
     description: 'O melhor custo-benefício para sua jornada.',
     icon: <Flame className="w-5 h-5" />,
     color: 'from-gold-400 to-gold-600',
-    priceId: 'price_1Sn6uwDi3wLcfDaXQWfWARiU',
+    priceId: 'price_1SniKQD1nKpsWc8or2Zn3epn',
     popular: true,
     features: ['Tudo do Mensal', 'Templates Editáveis', 'Suporte Prioritário', 'Economia de 50%']
   }
