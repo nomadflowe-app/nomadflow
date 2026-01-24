@@ -10,9 +10,15 @@ export async function redirectToCheckout(userId: string, userEmail: string, pric
         const stripe = await loadStripe(STRIPE_PUBLIC_KEY);
         if (!stripe) throw new Error('Stripe failed to load');
 
-        // Chamar a Edge Function do Supabase via fetch direto (mais estável para evitar 401 de JWT)
+        // IDENTIFICADOR DE VERSÃO
+        console.log('%c [VERSÃO STRIPE 2.0 - FETCH DIRETO]', 'background: blue; color: white; font-size: 20px;');
+
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
         const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+        if (!supabaseAnonKey) {
+            alert("ERRO CRÍTICO: Chave VITE_SUPABASE_ANON_KEY não encontrada no site!");
+        }
         const functionUrl = `${supabaseUrl}/functions/v1/create-checkout`;
 
         const response = await fetch(functionUrl, {
