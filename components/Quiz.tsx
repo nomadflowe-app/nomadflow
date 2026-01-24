@@ -214,7 +214,7 @@ const Quiz: React.FC = () => {
                                 <div className="h-2 flex-1 bg-white/5 rounded-full overflow-hidden mr-4">
                                     <motion.div
                                         initial={{ width: 0 }}
-                                        animate={{ width: `${(currentQuestion / QUESTIONS.length) * 100}%` }}
+                                        animate={{ width: `${((currentQuestion + 1) / QUESTIONS.length) * 100}%` }}
                                         className="h-full bg-brand-yellow"
                                     />
                                 </div>
@@ -223,25 +223,41 @@ const Quiz: React.FC = () => {
                                 </span>
                             </div>
 
-                            <div className="space-y-6">
-                                <h2 className="text-2xl font-black text-white leading-tight">
-                                    {QUESTIONS[currentQuestion].question}
-                                </h2>
+                            <div className="relative min-h-[340px]">
+                                <AnimatePresence mode="wait">
+                                    <motion.div
+                                        key={currentQuestion}
+                                        initial={{ opacity: 0, x: 10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: -10 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="space-y-6"
+                                    >
+                                        <h2 className="text-2xl font-black text-white leading-tight">
+                                            {QUESTIONS[currentQuestion].question}
+                                        </h2>
 
-                                <div className="grid gap-3">
-                                    {QUESTIONS[currentQuestion].options.map((opt, i) => (
-                                        <button
-                                            key={i}
-                                            onClick={() => handleAnswer(opt.points)}
-                                            className="w-full p-5 bg-white/5 border border-white/5 rounded-2xl text-left text-white/80 font-bold hover:bg-brand-yellow hover:text-navy-950 hover:border-brand-yellow transition-all active:scale-[0.98] group"
-                                        >
-                                            <div className="flex items-center justify-between">
-                                                <span>{opt.text}</span>
-                                                <ChevronRight className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                            </div>
-                                        </button>
-                                    ))}
-                                </div>
+                                        <div className="grid gap-3">
+                                            {QUESTIONS[currentQuestion].options.map((opt, i) => (
+                                                <motion.button
+                                                    key={i}
+                                                    whileHover={{ backgroundColor: "rgba(250, 204, 21, 1)", color: "rgba(10, 15, 30, 1)" }}
+                                                    whileTap={{ scale: 0.98 }}
+                                                    onClick={(e) => {
+                                                        (e.currentTarget as HTMLButtonElement).blur();
+                                                        handleAnswer(opt.points);
+                                                    }}
+                                                    className="w-full p-5 bg-white/5 border border-white/5 rounded-2xl text-left text-white/80 font-bold transition-colors group outline-none focus:ring-2 focus:ring-brand-yellow/50"
+                                                >
+                                                    <div className="flex items-center justify-between">
+                                                        <span>{opt.text}</span>
+                                                        <ChevronRight className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                    </div>
+                                                </motion.button>
+                                            ))}
+                                        </div>
+                                    </motion.div>
+                                </AnimatePresence>
                             </div>
 
                             <button
