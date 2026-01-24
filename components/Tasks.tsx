@@ -15,9 +15,8 @@ import {
 import { Category, UserProfile } from '../types';
 import { ChecklistItemCard } from './ChecklistItemCard';
 import { useChecklist } from '../context/ChecklistContext';
-import PremiumModal from './PremiumModal';
+// PremiumModal removido (agora global)
 import { ContentProtection } from './ContentProtection';
-import { redirectToCheckout } from '../lib/stripe';
 import { useToast } from '../context/ToastContext';
 
 const Tasks: React.FC = () => {
@@ -32,7 +31,6 @@ const Tasks: React.FC = () => {
     const [newTaskTitle, setNewTaskTitle] = useState('');
     const [newTaskDesc, setNewTaskDesc] = useState('');
     const [showLimitModal, setShowLimitModal] = useState(false);
-    const [showPremiumModal, setShowPremiumModal] = useState(false);
 
     const categories: (Category | 'Todos')[] = ['Todos', 'Trabalho', 'Pessoal', 'Financeiro', 'Formulários'];
 
@@ -237,7 +235,7 @@ const Tasks: React.FC = () => {
                                     onToggle={toggleDoc}
                                     onDelete={deleteItem}
                                     isLocked={!isPremiumUser && !item.isPersonal}
-                                    onLockClick={() => setShowPremiumModal(true)}
+                                    onLockClick={() => document.dispatchEvent(new CustomEvent('open-premium-modal'))}
                                 />
                             </motion.div>
                         ))}
@@ -251,23 +249,7 @@ const Tasks: React.FC = () => {
                 </motion.div>
             )}
 
-            {/* Premium Modal */}
-            <AnimatePresence>
-                {showPremiumModal && (
-                    <PremiumModal
-                        isOpen={showPremiumModal}
-                        onClose={() => setShowPremiumModal(false)}
-                        onUpgrade={async (priceId) => {
-                            if (!profile.id || !profile.email) return;
-                            try {
-                                await redirectToCheckout(profile.id, profile.email, priceId);
-                            } catch (err) {
-                                console.error(err);
-                            }
-                        }}
-                    />
-                )}
-            </AnimatePresence>
+            {/* Premium Modal removido (agora global no App.tsx) */}
 
             {/* Limit Reached Modal */}
             <AnimatePresence>

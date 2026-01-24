@@ -16,6 +16,8 @@ import {
 import Sidebar from './components/Sidebar';
 import LandingPage from './components/LandingPage';
 import Onboarding from './components/Onboarding';
+import PremiumModal from './components/PremiumModal';
+import { redirectToCheckout } from './lib/stripe';
 import MobileGuard from './components/MobileGuard';
 import AuthModal from './components/AuthModal';
 import DatabaseSetup from './components/DatabaseSetup';
@@ -75,6 +77,8 @@ const MainContent: React.FC = () => {
     return false;
   });
 
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
+
   // SUPABASE AUTH & ERROR LISTENER
   useEffect(() => {
     // Configura listener de erro de banco de dados
@@ -125,9 +129,13 @@ const MainContent: React.FC = () => {
     const handleChangeView = (e: any) => setActiveView(e.detail);
     document.addEventListener('change-view', handleChangeView);
 
+    const handleOpenModal = () => setShowPremiumModal(true);
+    document.addEventListener('open-premium-modal', handleOpenModal);
+
     return () => {
       subscription.unsubscribe();
       document.removeEventListener('change-view', handleChangeView);
+      document.removeEventListener('open-premium-modal', handleOpenModal);
       clearTimeout(safetyTimeout);
     };
   }, []);
@@ -170,6 +178,34 @@ const MainContent: React.FC = () => {
     // Ativa o Wizard após o onboarding
     setShowWizard(true);
     localStorage.setItem('nomad_show_wizard', 'true');
+  };
+
+  const handleUpgrade = async (priceId: string) => {
+    let userId = profile?.id;
+    let userEmail = profile?.email;
+
+    if (!userId || !userEmail) {
+      try {
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        if (currentSession) {
+          userId = currentSession.user.id;
+          userEmail = currentSession.user.email;
+        }
+      } catch (e) {
+        console.error('Error fetching session:', e);
+      }
+    }
+
+    if (!userId || !userEmail) {
+      alert('Por favor, faça login novamente para assinar.');
+      return;
+    }
+
+    try {
+      await redirectToCheckout(userId, userEmail, priceId);
+    } catch (err: any) {
+      alert(err.message || 'Erro ao iniciar checkout.');
+    }
   };
 
   const renderContent = () => {
@@ -277,6 +313,17 @@ const MainContent: React.FC = () => {
               setShowWizard(false);
               localStorage.removeItem('nomad_show_wizard');
             }} />
+          )}
+        </AnimatePresence>
+
+        {/* Premium Modal Centralizado */}
+        <AnimatePresence>
+          {showPremiumModal && (
+            <PremiumModal
+              isOpen={showPremiumModal}
+              onClose={() => setShowPremiumModal(false)}
+              onUpgrade={handleUpgrade}
+            />
           )}
         </AnimatePresence>
       </div>

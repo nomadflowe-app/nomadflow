@@ -6,15 +6,14 @@ import {
 } from 'lucide-react';
 import { UserGoal, UserProfile } from '../types';
 import { ContentProtection } from './ContentProtection';
-import { syncGoal, syncProfile, supabase } from '../lib/supabase';
-import PremiumModal from './PremiumModal';
+import { syncGoal, syncProfile } from '../lib/supabase';
+// PremiumModal removido daqui (agora global no App.tsx)
 import { FinancialCard } from './FinancialCard';
 import { useToast } from '../context/ToastContext';
 import { useChecklist } from '../context/ChecklistContext';
 import CircularProgress from './CircularProgress';
 import CurrencyConverter from './CurrencyConverter';
 import NotificationCenter from './NotificationCenter';
-import { redirectToCheckout } from '../lib/stripe';
 
 const Dashboard: React.FC = () => {
   const { showToast } = useToast();
@@ -39,7 +38,6 @@ const Dashboard: React.FC = () => {
     return profile?.tier && profile?.tier !== 'free';
   });
 
-  const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [isEditingGoal, setIsEditingGoal] = useState(false);
 
   // Sincronização Goal
@@ -49,9 +47,9 @@ const Dashboard: React.FC = () => {
 
   // Listen for upgrade triggers from children components
   useEffect(() => {
-    const handleOpenModal = () => setShowPremiumModal(true);
-    document.addEventListener('open-premium-modal', handleOpenModal);
-    return () => document.removeEventListener('open-premium-modal', handleOpenModal);
+    const handleOpenModal = () => document.dispatchEvent(new CustomEvent('open-premium-modal'));
+    document.addEventListener('open-premium-modal-local', handleOpenModal);
+    return () => document.removeEventListener('open-premium-modal-local', handleOpenModal);
   }, []);
 
   const handleSaveGoal = async (newGoal: UserGoal) => {
@@ -63,36 +61,11 @@ const Dashboard: React.FC = () => {
     showToast('Meta financeira atualizada com sucesso!', 'success');
   };
 
-  const handleUpgrade = async (priceId: string) => {
-    let userId = profile.id;
-    let userEmail = profile.email;
-
-    // Se faltar dados no perfil local, tentar pegar da sessão atual
-    if (!userId || !userEmail) {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          userId = session.user.id;
-          userEmail = session.user.email;
-        }
-      } catch (e) {
-        console.error('Error fetching session for checkout:', e);
-      }
-    }
-
-    if (!userId || !userEmail) {
-      showToast('Erro: Faça login novamente para assinar.', 'error');
-      return;
-    }
-
-    try {
-      showToast('Redirecionando para o pagamento seguro...', 'success');
-      await redirectToCheckout(userId, userEmail, priceId);
-    } catch (err: any) {
-      const message = err.message || 'Falha ao iniciar checkout. Tente novamente.';
-      showToast(message, 'error');
-    }
+  const handleUpgradeTrigger = () => {
+    document.dispatchEvent(new CustomEvent('open-premium-modal'));
   };
+
+
 
   const financialPercentage = useMemo(() => {
     if (!goal.targetAmount || goal.targetAmount === 0) return 0;
@@ -135,7 +108,7 @@ const Dashboard: React.FC = () => {
           <NotificationCenter />
           {!isPremiumUser && (
             <button
-              onClick={() => setShowPremiumModal(true)}
+              onClick={handleUpgradeTrigger}
               className="flex items-center gap-2 px-3 py-2 bg-transparent border border-brand-yellow rounded-2xl text-white hover:scale-105 transition-all shadow-lg sm:px-4"
             >
               <Crown className="w-4 h-4 text-brand-yellow" />
@@ -145,15 +118,7 @@ const Dashboard: React.FC = () => {
         </div>
       </motion.header>
 
-      <AnimatePresence>
-        {showPremiumModal && (
-          <PremiumModal
-            isOpen={showPremiumModal}
-            onClose={() => setShowPremiumModal(false)}
-            onUpgrade={handleUpgrade}
-          />
-        )}
-      </AnimatePresence>
+      {/* PremiumModal removido daqui (agora global no App.tsx) */}
 
       <div className="grid lg:grid-cols-2 gap-6">
         <motion.div variants={itemVariants}>
