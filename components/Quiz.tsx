@@ -34,9 +34,9 @@ const QUESTIONS: Question[] = [
     },
     {
         id: 3,
-        question: "Há quanto tempo você atua nessa modalidade?",
+        question: "Há quanto tempo você presta serviço nesta modalidade?",
         options: [
-            { text: "Mais de 6 meses", value: "more_6", points: 10 },
+            { text: "Há 1 ano ou mais", value: "more_1y", points: 10 },
             { text: "Entre 3 e 6 meses", value: "3_6", points: 5 },
             { text: "Menos de 3 meses", value: "less_3", points: 0 },
         ]
@@ -61,10 +61,10 @@ const QUESTIONS: Question[] = [
     },
     {
         id: 6,
-        question: "Qual opção melhor descreve você?",
+        question: "Em qual forma de comprovação profissional você se enquadra?",
         options: [
             { text: "Diploma universitário", value: "degree", points: 10 },
-            { text: "Experiência profissional comprovada", value: "exp", points: 10 },
+            { text: "Experiência profissional de 3 anos ou mais comprovada", value: "exp_3y", points: 10 },
             { text: "Nenhum dos dois", value: "none", points: 0 },
         ]
     },
