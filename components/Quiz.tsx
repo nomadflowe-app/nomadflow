@@ -80,8 +80,8 @@ const QUESTIONS: Question[] = [
         id: 8,
         question: "Por quanto tempo você pretende morar na Espanha?",
         options: [
-            { text: "Pelo menos 12 meses", value: "12m", points: 10 },
-            { text: "Menos de 12 meses", value: "less_12", points: 5 },
+            { text: "Por 3 anos ou mais", value: "3y_more", points: 10 },
+            { text: "Pelo menos 1 ano", value: "1y_more", points: 10 },
             { text: "Ainda não sei", value: "unknown", points: 5 },
         ]
     }
