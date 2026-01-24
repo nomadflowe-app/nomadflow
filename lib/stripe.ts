@@ -12,12 +12,11 @@ export async function redirectToCheckout(userId: string, userEmail: string, pric
 
         // Chamar a Edge Function do Supabase de forma segura via SDK
         console.log('[Stripe] Invoking create-checkout...');
+        const payload = { userId, userEmail, priceId };
+        alert(`Enviando para o servidor:\nEmail: ${userEmail}\nPriceID: ${priceId}`);
+
         const { data, error: funcError } = await supabase.functions.invoke('create-checkout', {
-            body: {
-                userId,
-                userEmail,
-                priceId,
-            }
+            body: payload
         });
 
         if (funcError) {

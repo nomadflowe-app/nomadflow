@@ -26,6 +26,12 @@ export const supabase = createClient(
   supabaseAnonKey || 'placeholder-key'
 );
 
+console.log('[Supabase Debug] Client initialized with:', {
+  url: supabaseUrl,
+  keyLength: supabaseAnonKey?.length,
+  keyStart: supabaseAnonKey?.substring(0, 5)
+});
+
 // --- ERROR HANDLING SYSTEM ---
 let onDatabaseErrorCallback: (() => void) | null = null;
 

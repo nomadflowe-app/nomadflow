@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { UserGoal, UserProfile } from '../types';
 import { ContentProtection } from './ContentProtection';
-import { syncGoal, syncProfile } from '../lib/supabase';
+import { syncGoal, syncProfile, supabase } from '../lib/supabase';
 import PremiumModal from './PremiumModal';
 import { FinancialCard } from './FinancialCard';
 import { useToast } from '../context/ToastContext';
@@ -64,14 +64,30 @@ const Dashboard: React.FC = () => {
   };
 
   const handleUpgrade = async (priceId: string) => {
-    if (!profile.id || !profile.email) {
-      showToast('Erro: Usuário não identificado para pagamento.', 'error');
+    let userId = profile.id;
+    let userEmail = profile.email;
+
+    // Se faltar dados no perfil local, tentar pegar da sessão atual
+    if (!userId || !userEmail) {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          userId = session.user.id;
+          userEmail = session.user.email;
+        }
+      } catch (e) {
+        console.error('Error fetching session for checkout:', e);
+      }
+    }
+
+    if (!userId || !userEmail) {
+      showToast('Erro: Faça login novamente para assinar.', 'error');
       return;
     }
 
     try {
       showToast('Redirecionando para o pagamento seguro...', 'success');
-      await redirectToCheckout(profile.id, profile.email, priceId);
+      await redirectToCheckout(userId, userEmail, priceId);
     } catch (err: any) {
       const message = err.message || 'Falha ao iniciar checkout. Tente novamente.';
       showToast(message, 'error');

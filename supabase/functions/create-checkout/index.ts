@@ -63,6 +63,7 @@ serve(async (req: Request) => {
                 },
             ],
             mode: 'subscription',
+            payment_method_types: ['card'],
             success_url: `${origin}/?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${origin}/`,
             metadata: {
