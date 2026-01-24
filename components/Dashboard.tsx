@@ -136,7 +136,7 @@ const Dashboard: React.FC = () => {
           {!isPremiumUser && (
             <button
               onClick={() => setShowPremiumModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-transparent border border-brand-yellow rounded-2xl text-white hover:scale-105 transition-all shadow-lg hidden sm:flex"
+              className="flex items-center gap-2 px-3 py-2 bg-transparent border border-brand-yellow rounded-2xl text-white hover:scale-105 transition-all shadow-lg sm:px-4"
             >
               <Crown className="w-4 h-4 text-brand-yellow" />
               <span className="text-[10px] font-black uppercase tracking-widest">Upgrade Elite</span>
