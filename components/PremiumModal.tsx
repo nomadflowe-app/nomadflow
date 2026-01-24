@@ -42,7 +42,7 @@ const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, onUpgrade 
   const currentPlan = PLANS.find(p => p.id === selectedPlan)!;
 
   return (
-    <div className="fixed inset-0 z-[2000] flex items-start md:items-center justify-center p-4 overflow-y-auto bg-navy-950/40 backdrop-blur-md">
+    <div className="fixed inset-0 z-[9999] flex items-start md:items-center justify-center p-4 overflow-y-auto bg-navy-950/40 backdrop-blur-md">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
