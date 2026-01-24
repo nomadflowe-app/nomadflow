@@ -11,6 +11,7 @@ export async function redirectToCheckout(userId: string, userEmail: string, pric
         if (!stripe) throw new Error('Stripe failed to load');
 
         // Chamar a Edge Function do Supabase de forma segura via SDK
+        console.log('[Stripe] Invoking create-checkout...');
         const { data, error: funcError } = await supabase.functions.invoke('create-checkout', {
             body: {
                 userId,
@@ -19,8 +20,22 @@ export async function redirectToCheckout(userId: string, userEmail: string, pric
             }
         });
 
-        if (funcError) throw funcError;
+        if (funcError) {
+            console.error('[Stripe] Invoke Error Details:', funcError);
+            try {
+                // Tentar ler a resposta de erro detalhada
+                const errorBody = await (funcError.context ? funcError.context.json() : Promise.resolve(null));
+                const errorMessage = errorBody?.error || funcError.message || JSON.stringify(funcError);
+                console.error('[Stripe] Backend Message:', errorMessage);
+                alert(`Erro no servidor: ${errorMessage}`);
+            } catch (e) {
+                alert(`Erro na chamada: ${funcError.message}`);
+            }
+            throw funcError;
+        }
+
         const session = data;
+        console.log('[Stripe] Session created:', session);
 
         if (session.url) {
             // Redireciona para o checkout seguro do Stripe
