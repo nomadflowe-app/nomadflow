@@ -10,39 +10,23 @@ export async function redirectToCheckout(userId: string, userEmail: string, pric
         const stripe = await loadStripe(STRIPE_PUBLIC_KEY);
         if (!stripe) throw new Error('Stripe failed to load');
 
-        // Chamar a Edge Function do Supabase de forma segura via SDK
-        console.log('[Stripe] Invoking create-checkout...');
-        const payload = { userId, userEmail, priceId };
-        alert(`Enviando para o servidor:\nEmail: ${userEmail}\nPriceID: ${priceId}`);
-
+        // Chamar a Edge Function do Supabase
         const { data, error: funcError } = await supabase.functions.invoke('create-checkout', {
-            body: payload
+            body: { userId, userEmail, priceId }
         });
 
         if (funcError) {
-            console.error('[Stripe] Invoke Error Details:', funcError);
-            try {
-                // Tentar ler a resposta de erro detalhada
-                const errorBody = await (funcError.context ? funcError.context.json() : Promise.resolve(null));
-                const errorMessage = errorBody?.error || funcError.message || JSON.stringify(funcError);
-                console.error('[Stripe] Backend Message:', errorMessage);
-                alert(`Erro no servidor: ${errorMessage}`);
-            } catch (e) {
-                alert(`Erro na chamada: ${funcError.message}`);
-            }
+            console.error('[Stripe] Erro na função:', funcError);
             throw funcError;
         }
 
         const session = data;
-        console.log('[Stripe] Session created:', session);
 
         if (session.url) {
             // Redireciona para o checkout seguro do Stripe
             window.location.href = session.url;
         } else {
-            const errorMsg = session.error || 'Erro desconhecido ao criar sessão';
-            console.error('Stripe Error Detail:', errorMsg);
-            throw new Error(errorMsg);
+            throw new Error(session.error || 'Erro ao criar sessão de checkout');
         }
 
     } catch (error: any) {
