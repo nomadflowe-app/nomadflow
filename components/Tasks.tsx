@@ -235,7 +235,7 @@ const Tasks: React.FC = () => {
                                     onToggle={toggleDoc}
                                     onDelete={deleteItem}
                                     isLocked={!isPremiumUser && !item.isPersonal}
-                                    onLockClick={() => document.dispatchEvent(new CustomEvent('open-premium-modal'))}
+                                    onLockClick={() => window.dispatchEvent(new CustomEvent('open-premium-modal'))}
                                 />
                             </motion.div>
                         ))}

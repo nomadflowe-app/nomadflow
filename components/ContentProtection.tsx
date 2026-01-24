@@ -18,11 +18,8 @@ export const ContentProtection: React.FC<ContentProtectionProps> = ({ children, 
   return (
     <div
       className="relative overflow-hidden rounded-[2.5rem] bg-navy-950/20 border border-white/5 isolate group min-h-[400px] cursor-pointer"
-      onClick={(e) => {
-        // Evita disparar se clicar no próprio botão (que já tem seu handler)
-        if ((e.target as HTMLElement).tagName !== 'BUTTON') {
-          document.dispatchEvent(new CustomEvent('open-premium-modal'));
-        }
+      onClick={() => {
+        window.dispatchEvent(new CustomEvent('open-premium-modal'));
       }}
     >
       {/* Blurred Content Background */}
@@ -39,11 +36,11 @@ export const ContentProtection: React.FC<ContentProtectionProps> = ({ children, 
       </div>
 
       {/* Premium Core Card - Centered in Viewport shadow */}
-      <div className="absolute inset-0 z-20 flex items-start justify-center p-6 pt-20 md:items-center md:pt-6">
+      <div className="absolute inset-0 z-20 flex items-start justify-center p-6 pt-16 md:items-center md:pt-6">
         <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          whileInView={{ scale: 1, opacity: 1 }}
-          className="w-full max-w-[280px] glass-card bg-navy-900/90 backdrop-blur-3xl border-brand-yellow/30 p-8 rounded-[2rem] text-center space-y-6 shadow-2xl relative overflow-hidden"
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="w-full max-w-[280px] glass-card bg-navy-900/95 backdrop-blur-3xl border-brand-yellow/30 p-8 rounded-[2rem] text-center space-y-6 shadow-[0_0_50px_rgba(0,0,0,0.5)] relative overflow-hidden"
         >
           {/* Accent decoration */}
           <div className="absolute -top-10 -right-10 w-24 h-24 bg-brand-yellow/10 blur-3xl rounded-full" />
@@ -71,8 +68,7 @@ export const ContentProtection: React.FC<ContentProtectionProps> = ({ children, 
           <div className="space-y-3 relative z-10 pt-2">
             {!isDripping ? (
               <button
-                onClick={() => document.dispatchEvent(new CustomEvent('open-premium-modal'))}
-                className="w-full py-3 bg-brand-yellow text-navy-950 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-white transition-all shadow-[0_0_30px_rgba(250,204,21,0.2)] active:scale-95"
+                className="w-full py-3 bg-brand-yellow text-navy-950 rounded-xl font-black uppercase tracking-widest text-[10px] shadow-[0_0_30px_rgba(250,204,21,0.2)]"
               >
                 Desbloquear Agora
               </button>

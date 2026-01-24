@@ -62,7 +62,7 @@ const Dashboard: React.FC = () => {
   };
 
   const handleUpgradeTrigger = () => {
-    document.dispatchEvent(new CustomEvent('open-premium-modal'));
+    window.dispatchEvent(new CustomEvent('open-premium-modal'));
   };
 
 
