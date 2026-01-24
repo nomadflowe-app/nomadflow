@@ -15,12 +15,17 @@ export const ContentProtection: React.FC<ContentProtectionProps> = ({ children, 
 
   const isDripping = isPremium && drippingDays !== undefined && drippingDays > 0;
 
+  // The onClick handler is already on the parent div, which handles bubbling.
+  // The z-index for the clickable area is implicitly handled by the parent div.
+  // The cursor-pointer is already present in the className.
+  const handleOpenPremiumModal = () => {
+    window.dispatchEvent(new CustomEvent('open-premium-modal'));
+  };
+
   return (
     <div
-      className="relative overflow-hidden rounded-[2.5rem] bg-navy-950/20 border border-white/5 isolate group min-h-[400px] cursor-pointer"
-      onClick={() => {
-        window.dispatchEvent(new CustomEvent('open-premium-modal'));
-      }}
+      className="relative overflow-hidden rounded-[2.5rem] bg-navy-950/20 border border-white/5 isolate group min-h-[400px] cursor-pointer z-0" // Added z-0 for explicit z-index on the clickable area
+      onClick={handleOpenPremiumModal}
     >
       {/* Blurred Content Background */}
       <div className="filter blur-2xl opacity-40 pointer-events-none select-none p-6 flex flex-col h-full" aria-hidden="true">
@@ -68,9 +73,9 @@ export const ContentProtection: React.FC<ContentProtectionProps> = ({ children, 
           <div className="space-y-3 relative z-10 pt-2">
             {!isDripping ? (
               <button
-                className="w-full py-3 bg-brand-yellow text-navy-950 rounded-xl font-black uppercase tracking-widest text-[10px] shadow-[0_0_30px_rgba(250,204,21,0.2)]"
+                className="w-full py-4 bg-brand-yellow text-navy-950 rounded-xl font-black uppercase tracking-widest text-xs shadow-[0_0_30px_rgba(250,204,21,0.3)] active:scale-95"
               >
-                Desbloquear Agora
+                Assinar Agora
               </button>
             ) : (
               <div className="w-full py-3 bg-white/5 border border-white/10 text-white/40 rounded-xl font-black uppercase tracking-widest text-[10px]">

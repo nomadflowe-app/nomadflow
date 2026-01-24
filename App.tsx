@@ -40,6 +40,7 @@ const Success = lazy(() => import('./components/Success'));
 const TermsOfUse = lazy(() => import('./components/TermsOfUse'));
 const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
 const BeAPartner = lazy(() => import('./components/BeAPartner'));
+const Quiz = lazy(() => import('./components/Quiz'));
 
 type View = 'Dashboard' | 'Tasks' | 'Guides' | 'Members' | 'Profile' | 'Success';
 
@@ -129,13 +130,16 @@ const MainContent: React.FC = () => {
     const handleChangeView = (e: any) => setActiveView(e.detail);
     document.addEventListener('change-view', handleChangeView);
 
-    const handleOpenModal = () => setShowPremiumModal(true);
-    document.addEventListener('open-premium-modal', handleOpenModal);
+    const handleOpenModal = () => {
+      console.log('[App] Abrindo modal de planos...');
+      setShowPremiumModal(true);
+    };
+    window.addEventListener('open-premium-modal', handleOpenModal);
 
     return () => {
       subscription.unsubscribe();
       document.removeEventListener('change-view', handleChangeView);
-      document.removeEventListener('open-premium-modal', handleOpenModal);
+      window.removeEventListener('open-premium-modal', handleOpenModal);
       clearTimeout(safetyTimeout);
     };
   }, []);
@@ -353,6 +357,7 @@ const App: React.FC = () => {
         <Route path="/termos" element={<TermsOfUse />} />
         <Route path="/privacidade" element={<PrivacyPolicy />} />
         <Route path="/seja-parceiro" element={<BeAPartner />} />
+        <Route path="/quiz" element={<Quiz />} />
         <Route path="/*" element={<MainContent />} />
       </Routes>
     </Suspense>
