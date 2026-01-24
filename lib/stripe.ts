@@ -10,17 +10,27 @@ export async function redirectToCheckout(userId: string, userEmail: string, pric
         const stripe = await loadStripe(STRIPE_PUBLIC_KEY);
         if (!stripe) throw new Error('Stripe failed to load');
 
-        // Chamar a Edge Function do Supabase
-        const { data, error: funcError } = await supabase.functions.invoke('create-checkout', {
-            body: { userId, userEmail, priceId }
+        // Chamar a Edge Function do Supabase via fetch direto (mais estável para evitar 401 de JWT)
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+        const functionUrl = `${supabaseUrl}/functions/v1/create-checkout`;
+
+        const response = await fetch(functionUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'apikey': supabaseAnonKey,
+                'Authorization': `Bearer ${supabaseAnonKey}`
+            },
+            body: JSON.stringify({ userId, userEmail, priceId })
         });
 
-        if (funcError) {
-            console.error('[Stripe] Erro na função:', funcError);
-            throw funcError;
+        if (!response.ok) {
+            const errorBody = await response.json().catch(() => ({}));
+            throw new Error(errorBody.error || `Erro no servidor: ${response.status}`);
         }
 
-        const session = data;
+        const session = await response.json();
 
         if (session.url) {
             // Redireciona para o checkout seguro do Stripe
