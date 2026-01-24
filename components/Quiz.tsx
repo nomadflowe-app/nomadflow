@@ -98,11 +98,14 @@ const Quiz: React.FC = () => {
         const newAnswers = [...answers, points];
         setAnswers(newAnswers);
 
-        if (currentQuestion < QUESTIONS.length - 1) {
-            setCurrentQuestion(currentQuestion + 1);
-        } else {
-            setStep('result');
-        }
+        // Pequeno delay para o usuário ver o clique antes de avançar (melhora UX mobile)
+        setTimeout(() => {
+            if (currentQuestion < QUESTIONS.length - 1) {
+                setCurrentQuestion(currentQuestion + 1);
+            } else {
+                setStep('result');
+            }
+        }, 200);
     };
 
     const calculateResult = () => {
@@ -181,7 +184,7 @@ const Quiz: React.FC = () => {
                             </div>
                             <div className="space-y-4">
                                 <h1 className="text-3xl font-black text-white leading-tight tracking-tight">
-                                    Será que você pode viver legalmente na Espanha como <span className="text-brand-yellow">Nômade Digital?</span> 🇪🇸💻
+                                    Descubra se você pode viver legalmente na Espanha como <span className="text-brand-yellow">Nômade Digital.</span> 🇪🇸💻
                                 </h1>
                                 <p className="text-white/60 font-medium">
                                     Esse quiz vai analisar se você se encaixa nos critérios gerais do visto de nômade digital da Espanha.
@@ -240,18 +243,17 @@ const Quiz: React.FC = () => {
                                         <div className="grid gap-3">
                                             {QUESTIONS[currentQuestion].options.map((opt, i) => (
                                                 <motion.button
-                                                    key={i}
-                                                    whileHover={{ backgroundColor: "rgba(250, 204, 21, 1)", color: "rgba(10, 15, 30, 1)" }}
-                                                    whileTap={{ scale: 0.98 }}
+                                                    key={`${currentQuestion}-${i}`} // Chave única por pergunta para forçar re-render total
+                                                    whileTap={{ scale: 0.95, backgroundColor: "rgba(250, 204, 21, 1)", color: "rgba(10, 15, 30, 1)" }}
                                                     onClick={(e) => {
                                                         (e.currentTarget as HTMLButtonElement).blur();
                                                         handleAnswer(opt.points);
                                                     }}
-                                                    className="w-full p-5 bg-white/5 border border-white/5 rounded-2xl text-left text-white/80 font-bold transition-colors group outline-none focus:ring-2 focus:ring-brand-yellow/50"
+                                                    className="w-full p-5 bg-white/5 border border-white/5 rounded-2xl text-left text-white/80 font-bold transition-all outline-none md:hover:bg-brand-yellow md:hover:text-navy-950 md:hover:border-brand-yellow group"
                                                 >
                                                     <div className="flex items-center justify-between">
                                                         <span>{opt.text}</span>
-                                                        <ChevronRight className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                        <ChevronRight className="w-5 h-5 opacity-0 md:group-hover:opacity-100 transition-opacity" />
                                                     </div>
                                                 </motion.button>
                                             ))}
@@ -315,7 +317,7 @@ const Quiz: React.FC = () => {
 
                                         <div className="space-y-4">
                                             <a
-                                                href="https://wa.link/6w0uve"
+                                                href="https://wa.link/72twf9"
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="w-full py-5 bg-brand-yellow text-navy-950 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-sm flex items-center justify-center gap-3"
