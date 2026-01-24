@@ -16,25 +16,34 @@ export const ContentProtection: React.FC<ContentProtectionProps> = ({ children, 
   const isDripping = isPremium && drippingDays !== undefined && drippingDays > 0;
 
   return (
-    <div className="relative overflow-hidden rounded-[2.5rem] bg-navy-950/20 border border-white/5 isolate group h-full">
-      {/* Heavily Blurred Content Background */}
+    <div
+      className="relative overflow-hidden rounded-[2.5rem] bg-navy-950/20 border border-white/5 isolate group min-h-[400px] cursor-pointer"
+      onClick={(e) => {
+        // Evita disparar se clicar no próprio botão (que já tem seu handler)
+        if ((e.target as HTMLElement).tagName !== 'BUTTON') {
+          document.dispatchEvent(new CustomEvent('open-premium-modal'));
+        }
+      }}
+    >
       {/* Blurred Content Background */}
-      <div className="filter blur-xl opacity-60 pointer-events-none select-none p-6 flex flex-col h-full" aria-hidden="true">
+      <div className="filter blur-2xl opacity-40 pointer-events-none select-none p-6 flex flex-col h-full" aria-hidden="true">
         {children || (
           <div className="space-y-4 flex-1 py-4">
             <div className="h-10 bg-white/10 rounded-2xl w-full" />
             <div className="h-3 bg-white/10 rounded-full w-[90%]" />
             <div className="h-3 bg-white/10 rounded-full w-[70%]" />
+            <div className="h-10 bg-white/10 rounded-2xl w-full" />
+            <div className="h-3 bg-white/10 rounded-full w-[80%]" />
           </div>
         )}
       </div>
 
-      {/* Premium Core Card */}
-      <div className="absolute inset-0 z-20 flex items-center justify-center p-6">
+      {/* Premium Core Card - Centered in Viewport shadow */}
+      <div className="absolute inset-0 z-20 flex items-start justify-center p-6 pt-20 md:items-center md:pt-6">
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           whileInView={{ scale: 1, opacity: 1 }}
-          className="w-full max-w-[280px] glass-card bg-navy-900/60 backdrop-blur-2xl border-brand-yellow/30 p-8 rounded-[2rem] text-center space-y-6 shadow-2xl relative overflow-hidden"
+          className="w-full max-w-[280px] glass-card bg-navy-900/90 backdrop-blur-3xl border-brand-yellow/30 p-8 rounded-[2rem] text-center space-y-6 shadow-2xl relative overflow-hidden"
         >
           {/* Accent decoration */}
           <div className="absolute -top-10 -right-10 w-24 h-24 bg-brand-yellow/10 blur-3xl rounded-full" />
