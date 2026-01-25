@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronRight, Sparkles, CheckCircle2, AlertCircle, XCircle, Send, Clock, ArrowLeft } from 'lucide-react';
+import { ChevronRight, Sparkles, CheckCircle2, AlertCircle, XCircle, Send, Clock, ArrowLeft, User, Mail, Phone } from 'lucide-react';
+import { saveQuizLeadInitial, updateQuizLeadFinal, supabase } from '../lib/supabase';
 
 type Question = {
     id: number;
@@ -88,21 +89,59 @@ const QUESTIONS: Question[] = [
 ];
 
 const Quiz: React.FC = () => {
-    const [step, setStep] = useState<'intro' | 'quiz' | 'result'>('intro');
+    const [step, setStep] = useState<'intro' | 'lead' | 'quiz' | 'result'>('intro');
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [answers, setAnswers] = useState<number[]>([]);
+    const [loading, setLoading] = useState(false);
 
-    const handleStart = () => setStep('quiz');
+    // Lead State
+    const [leadData, setLeadData] = useState({
+        name: '',
+        email: '',
+        phone: ''
+    });
+    const [leadId, setLeadId] = useState<string | null>(null);
+
+    const handleStart = () => setStep('lead');
+
+    const handleLeadSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!leadData.name || !leadData.email || !leadData.phone) return;
+
+        setLoading(true);
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const result = await saveQuizLeadInitial({
+                ...leadData,
+                user_id: session?.user?.id
+            });
+
+            if (result) {
+                setLeadId(result.id);
+                setStep('quiz');
+            }
+        } catch (error) {
+            console.error('Error submitting lead:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleAnswer = (points: number) => {
         const newAnswers = [...answers, points];
         setAnswers(newAnswers);
 
         // Pequeno delay para o usuário ver o clique antes de avançar (melhora UX mobile)
-        setTimeout(() => {
+        setTimeout(async () => {
             if (currentQuestion < QUESTIONS.length - 1) {
                 setCurrentQuestion(currentQuestion + 1);
             } else {
+                // Salvar resultado final no banco
+                if (leadId) {
+                    const score = newAnswers.reduce((acc, curr) => acc + curr, 0);
+                    const resultGrade = score >= 70 ? 'A' : score >= 40 ? 'B' : 'C';
+                    await updateQuizLeadFinal(leadId, resultGrade, score);
+                }
                 setStep('result');
             }
         }, 200);
@@ -201,6 +240,83 @@ const Quiz: React.FC = () => {
                                 className="w-full py-5 bg-brand-yellow text-navy-950 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-sm flex items-center justify-center gap-3"
                             >
                                 Começar <ChevronRight className="w-5 h-5" />
+                            </button>
+                        </motion.div>
+                    )}
+
+                    {step === 'lead' && (
+                        <motion.div
+                            key="lead"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            className="glass-card bg-navy-900/50 border-white/5 p-8 md:p-12 rounded-[2.5rem] space-y-8"
+                        >
+                            <div className="space-y-2 text-center">
+                                <h2 className="text-2xl font-black text-white tracking-tight">Antes de começarmos...</h2>
+                                <p className="text-white/60 text-sm font-medium">Deixe seus contatos para enviarmos o resumo detalhado do seu perfil.</p>
+                            </div>
+
+                            <form onSubmit={handleLeadSubmit} className="space-y-4">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Nome Completo</label>
+                                    <div className="relative">
+                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                                        <input
+                                            required
+                                            type="text"
+                                            placeholder="Seu nome"
+                                            className="w-full pl-12 pr-5 py-4 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
+                                            value={leadData.name}
+                                            onChange={e => setLeadData({ ...leadData, name: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">E-mail</label>
+                                    <div className="relative">
+                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                                        <input
+                                            required
+                                            type="email"
+                                            placeholder="exemplo@gmail.com"
+                                            className="w-full pl-12 pr-5 py-4 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
+                                            value={leadData.email}
+                                            onChange={e => setLeadData({ ...leadData, email: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">WhatsApp</label>
+                                    <div className="relative">
+                                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                                        <input
+                                            required
+                                            type="tel"
+                                            placeholder="(00) 00000-0000"
+                                            className="w-full pl-12 pr-5 py-4 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
+                                            value={leadData.phone}
+                                            onChange={e => setLeadData({ ...leadData, phone: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+
+                                <button
+                                    disabled={loading}
+                                    type="submit"
+                                    className="w-full py-5 bg-brand-yellow text-navy-950 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-sm flex items-center justify-center gap-3 disabled:opacity-50"
+                                >
+                                    {loading ? 'Processando...' : 'Avançar para o Quiz'} <ChevronRight className="w-5 h-5" />
+                                </button>
+                            </form>
+
+                            <button
+                                onClick={() => setStep('intro')}
+                                className="flex items-center gap-2 text-[10px] font-black text-white/20 uppercase tracking-widest hover:text-white transition-colors"
+                            >
+                                <ArrowLeft className="w-4 h-4" /> Voltar
                             </button>
                         </motion.div>
                     )}

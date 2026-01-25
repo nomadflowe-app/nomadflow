@@ -627,3 +627,76 @@ export async function createNotification(notification: { title: string; message:
   }
   return data;
 }
+// --- QUIZ LEADS FUNCTIONS ---
+
+export async function saveQuizLeadInitial(lead: { name: string; email: string; phone: string; user_id?: string }) {
+  const { data, error } = await supabase
+    .from('quiz_leads')
+    .insert([{
+      ...lead,
+      status: 'started'
+    }])
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error saving initial quiz lead:', error);
+    return null;
+  }
+  return data;
+}
+
+export async function updateQuizLeadFinal(id: string, result: string, score: number) {
+  const { data, error } = await supabase
+    .from('quiz_leads')
+    .update({
+      result,
+      score,
+      status: 'completed'
+    })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating final quiz lead:', error);
+    return null;
+  }
+  return data;
+}
+
+export async function getQuizLeads() {
+  const { data, error } = await supabase
+    .from('quiz_leads')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching quiz leads:', error);
+    return [];
+  }
+  return data;
+}
+
+export async function getQuizStats() {
+  const { data: allLeads, error } = await supabase
+    .from('quiz_leads')
+    .select('status, result');
+
+  if (error) {
+    console.error('Error fetching quiz stats:', error);
+    return null;
+  }
+
+  const started = allLeads.length;
+  const completed = allLeads.filter(l => l.status === 'completed').length;
+  const conversionRate = started > 0 ? (completed / started) * 100 : 0;
+
+  const results = {
+    A: allLeads.filter(l => l.result === 'A').length,
+    B: allLeads.filter(l => l.result === 'B').length,
+    C: allLeads.filter(l => l.result === 'C').length,
+  };
+
+  return { started, completed, conversionRate, results };
+}

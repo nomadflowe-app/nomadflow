@@ -11,7 +11,11 @@ import {
     Video,
     MessageSquare,
     AlertCircle,
-    Handshake
+    Handshake,
+    User,
+    Mail,
+    Phone,
+    Clock
 } from 'lucide-react';
 import {
     getGuides,
@@ -28,12 +32,14 @@ import {
     createPartner,
     updatePartner,
     deletePartner,
-    createNotification
+    createNotification,
+    getQuizLeads,
+    getQuizStats
 } from '../lib/supabase';
 import { useToast } from '../context/ToastContext';
 import { SystemStatus } from './SystemStatus';
 
-type AdminTab = 'Notícias' | 'Tutoriais' | 'Comunidade' | 'Parceiros' | 'Notificações';
+type AdminTab = 'Notícias' | 'Tutoriais' | 'Comunidade' | 'Parceiros' | 'Notificações' | 'Leads';
 
 export const AdminArea: React.FC = () => {
     const { showToast } = useToast();
@@ -43,6 +49,7 @@ export const AdminArea: React.FC = () => {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [isCreating, setIsCreating] = useState(false);
     const [isSystemStatusOpen, setIsSystemStatusOpen] = useState(false);
+    const [quizStats, setQuizStats] = useState<any>(null);
 
     // Form States
     const [formData, setFormData] = useState<any>({
@@ -94,6 +101,11 @@ export const AdminArea: React.FC = () => {
         else if (activeTab === 'Tutoriais') result = await getTutorials();
         else if (activeTab === 'Comunidade') result = await getCommunityPosts();
         else if (activeTab === 'Parceiros') result = await getPartners();
+        else if (activeTab === 'Leads') {
+            const [leads, stats] = await Promise.all([getQuizLeads(), getQuizStats()]);
+            result = leads;
+            setQuizStats(stats);
+        }
         setData(result);
         setLoading(false);
     }
@@ -329,6 +341,7 @@ export const AdminArea: React.FC = () => {
                         { id: 'Tutoriais', icon: <Video className="w-4 h-4" /> },
                         { id: 'Parceiros', icon: <Handshake className="w-4 h-4" /> },
                         { id: 'Comunidade', icon: <MessageSquare className="w-4 h-4" /> },
+                        { id: 'Leads', icon: <User className="w-4 h-4 text-green-400" /> },
                         { id: 'Notificações', icon: <MessageSquare className="w-4 h-4 text-brand-yellow" /> }
                     ].map(tab => (
                         <button
@@ -382,47 +395,106 @@ export const AdminArea: React.FC = () => {
                                 animate={{ opacity: 1, y: 0 }}
                                 className="grid gap-4"
                             >
+                                {activeTab === 'Leads' && quizStats && (
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                                        <div className="bg-white/5 border border-white/10 p-4 rounded-2xl">
+                                            <p className="text-[10px] font-black uppercase text-white/40 mb-1">Iniciados</p>
+                                            <p className="text-2xl font-black text-white">{quizStats.started}</p>
+                                        </div>
+                                        <div className="bg-white/5 border border-white/10 p-4 rounded-2xl">
+                                            <p className="text-[10px] font-black uppercase text-white/40 mb-1">Finalizados</p>
+                                            <p className="text-2xl font-black text-white">{quizStats.completed}</p>
+                                        </div>
+                                        <div className="bg-white/5 border border-white/10 p-4 rounded-2xl">
+                                            <p className="text-[10px] font-black uppercase text-white/40 mb-1">Conversão</p>
+                                            <p className="text-2xl font-black text-brand-yellow">{quizStats.conversionRate.toFixed(1)}%</p>
+                                        </div>
+                                        <div className="bg-white/5 border border-white/10 p-4 rounded-2xl">
+                                            <p className="text-[10px] font-black uppercase text-white/40 mb-1">Elegíveis (A)</p>
+                                            <p className="text-2xl font-black text-green-400">{quizStats.results.A}</p>
+                                        </div>
+                                    </div>
+                                )}
+
                                 {data.map(item => (
                                     <div
                                         key={item.id}
                                         className="glass-card p-6 rounded-[2rem] border-white/5 bg-white/5 flex justify-between items-center group hover:bg-white/10 transition-all border border-transparent hover:border-white/10"
                                     >
-                                        <div className="space-y-1">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-[9px] font-black uppercase tracking-widest text-brand-yellow bg-brand-yellow/10 px-2 py-0.5 rounded-md">
-                                                    {item.category || item.instructor || (item.name ? 'Parceiro' : 'Geral')}
-                                                </span>
-                                                {activeTab === 'Comunidade' && item.is_elite && (
-                                                    <span className="text-[9px] font-black uppercase tracking-widest text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded-md">
-                                                        Elite
+                                        {activeTab === 'Leads' ? (
+                                            <div className="flex-1 space-y-1">
+                                                <div className="flex items-center gap-2">
+                                                    <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${item.status === 'completed' ? 'bg-green-400/10 text-green-400' : 'bg-white/10 text-white/40'
+                                                        }`}>
+                                                        {item.status === 'completed' ? 'Finalizado' : 'Iniciado (Abandono)'}
                                                     </span>
-                                                )}
-                                                {activeTab === 'Tutoriais' && item.is_dripped && (
-                                                    <span className="text-[9px] font-black uppercase tracking-widest text-orange-400 bg-orange-400/10 px-2 py-0.5 rounded-md">
-                                                        7 Dias (Drip)
-                                                    </span>
-                                                )}
+                                                    {item.result && (
+                                                        <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${item.result === 'A' ? 'bg-green-400/10 text-green-400' :
+                                                            item.result === 'B' ? 'bg-amber-400/10 text-amber-400' :
+                                                                'bg-red-400/10 text-red-400'
+                                                            }`}>
+                                                            Resultado {item.result}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <h3 className="text-white font-bold">{item.name}</h3>
+                                                <div className="flex flex-wrap gap-4 text-[10px] text-white/40 font-bold uppercase tracking-widest">
+                                                    <span className="flex items-center gap-1"><Mail className="w-3 h-3" /> {item.email}</span>
+                                                    <span className="flex items-center gap-1"><Phone className="w-3 h-3" /> {item.phone}</span>
+                                                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {new Date(item.created_at).toLocaleDateString()}</span>
+                                                </div>
                                             </div>
-                                            <h3 className="text-white font-bold leading-tight">{item.title || item.user_name || item.name}</h3>
-                                            <p className="text-white/40 text-xs line-clamp-1 italic">
-                                                {item.excerpt || item.content || item.description || 'Sem descrição'}
-                                            </p>
-                                        </div>
+                                        ) : (
+                                            <div className="space-y-1">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[9px] font-black uppercase tracking-widest text-brand-yellow bg-brand-yellow/10 px-2 py-0.5 rounded-md">
+                                                        {item.category || item.instructor || (item.name ? 'Parceiro' : 'Geral')}
+                                                    </span>
+                                                    {activeTab === 'Comunidade' && item.is_elite && (
+                                                        <span className="text-[9px] font-black uppercase tracking-widest text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded-md">
+                                                            Elite
+                                                        </span>
+                                                    )}
+                                                    {activeTab === 'Tutoriais' && item.is_dripped && (
+                                                        <span className="text-[9px] font-black uppercase tracking-widest text-orange-400 bg-orange-400/10 px-2 py-0.5 rounded-md">
+                                                            7 Dias (Drip)
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <h3 className="text-white font-bold leading-tight">{item.title || item.user_name || item.name}</h3>
+                                                <p className="text-white/40 text-xs line-clamp-1 italic">
+                                                    {item.excerpt || item.content || item.description || 'Sem descrição'}
+                                                </p>
+                                            </div>
+                                        )}
 
                                         <div className="flex gap-2">
-                                            <button
-                                                onClick={() => handleDelete(item.id)}
-                                                className="p-3 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all border border-red-500/20"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                            {activeTab !== 'Comunidade' && (
-                                                <button
-                                                    onClick={() => handleEdit(item)}
-                                                    className="p-3 bg-white/10 text-white rounded-xl hover:bg-white hover:text-navy-950 transition-all border border-white/20"
+                                            {activeTab === 'Leads' ? (
+                                                <a
+                                                    href={`https://wa.me/${item.phone.replace(/\D/g, '')}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="p-3 bg-green-500/10 text-green-500 rounded-xl hover:bg-green-500 hover:text-white transition-all border border-green-500/20"
                                                 >
-                                                    <Edit3 className="w-4 h-4" />
-                                                </button>
+                                                    <MessageSquare className="w-4 h-4" />
+                                                </a>
+                                            ) : (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleDelete(item.id)}
+                                                        className="p-3 bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all border border-red-500/20"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                    {activeTab !== 'Comunidade' && (
+                                                        <button
+                                                            onClick={() => handleEdit(item)}
+                                                            className="p-3 bg-white/10 text-white rounded-xl hover:bg-white hover:text-navy-950 transition-all border border-white/20"
+                                                        >
+                                                            <Edit3 className="w-4 h-4" />
+                                                        </button>
+                                                    )}
+                                                </>
                                             )}
                                         </div>
                                     </div>
