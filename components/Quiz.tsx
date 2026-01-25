@@ -91,16 +91,23 @@ const QUESTIONS: Question[] = [
 const Quiz: React.FC = () => {
     const [step, setStep] = useState<'intro' | 'lead' | 'quiz' | 'result'>('intro');
     const [currentQuestion, setCurrentQuestion] = useState(0);
-    const [answers, setAnswers] = useState<number[]>([]);
+    const [answers, setAnswers] = useState<{ value: string; points: number }[]>([]);
     const [loading, setLoading] = useState(false);
 
     // Lead State
     const [leadData, setLeadData] = useState({
         name: '',
         email: '',
+        countryCode: '+55',
         phone: ''
     });
     const [leadId, setLeadId] = useState<string | null>(null);
+    const [phoneError, setPhoneError] = useState(false);
+
+    const validatePhone = (phone: string) => {
+        const cleanPhone = phone.replace(/\D/g, '');
+        return cleanPhone.length >= 8 && cleanPhone.length <= 15;
+    };
 
     const handleStart = () => setStep('lead');
 
@@ -108,11 +115,18 @@ const Quiz: React.FC = () => {
         e.preventDefault();
         if (!leadData.name || !leadData.email || !leadData.phone) return;
 
+        if (!validatePhone(leadData.phone)) {
+            setPhoneError(true);
+            return;
+        }
+
         setLoading(true);
         try {
+            const fullPhone = `${leadData.countryCode}${leadData.phone.replace(/\D/g, '')}`;
             const { data: { session } } = await supabase.auth.getSession();
             const result = await saveQuizLeadInitial({
                 ...leadData,
+                phone: fullPhone,
                 user_id: session?.user?.id
             });
 
@@ -133,8 +147,8 @@ const Quiz: React.FC = () => {
         }
     };
 
-    const handleAnswer = (points: number) => {
-        const newAnswers = [...answers, points];
+    const handleAnswer = (points: number, value: string) => {
+        const newAnswers = [...answers, { points, value }];
         setAnswers(newAnswers);
 
         // Pequeno delay para o usuário ver o clique antes de avançar (melhora UX mobile)
@@ -144,8 +158,8 @@ const Quiz: React.FC = () => {
             } else {
                 // Salvar resultado final no banco
                 if (leadId) {
-                    const score = newAnswers.reduce((acc, curr) => acc + curr, 0);
-                    const resultGrade = score >= 70 ? 'A' : score >= 40 ? 'B' : 'C';
+                    const resultGrade = calculateResult(newAnswers);
+                    const score = newAnswers.reduce((acc, curr) => acc + curr.points, 0);
                     await updateQuizLeadFinal(leadId, resultGrade, score);
                 }
                 setStep('result');
@@ -153,16 +167,27 @@ const Quiz: React.FC = () => {
         }, 200);
     };
 
-    const calculateResult = () => {
-        const totalPoints = answers.reduce((acc, curr) => acc + curr, 0);
+    const calculateResult = (currentAnswers = answers) => {
+        // Regras de "Deal-breakers" (Trava obrigatória)
+        const hasLowIncome = currentAnswers.some(a => a.value === 'low'); // Menos de 2.500€
+        const hasLowExperience = currentAnswers.some(a => a.value === 'less_3'); // Menos de 3 meses
+        const hasCriminalRecord = currentAnswers.some(a => a.value === 'yes' && QUESTIONS[6].id === 7);
 
-        // Lógica simplificada baseada na pontuação
+        if (hasLowIncome || hasLowExperience || hasCriminalRecord) {
+            return 'C';
+        }
+
+        const totalPoints = currentAnswers.reduce((acc, curr) => acc + curr.points, 0);
+
         if (totalPoints >= 70) return 'A';
         if (totalPoints >= 40) return 'B';
         return 'C';
     };
 
     const getResultData = (result: string) => {
+        const hasLowIncome = answers.some(a => a.value === 'low');
+        const hasLowExperience = answers.some(a => a.value === 'less_3');
+
         switch (result) {
             case 'A':
                 return {
@@ -195,6 +220,11 @@ const Quiz: React.FC = () => {
                     ]
                 };
             default:
+                const reasons = [];
+                if (hasLowIncome) reasons.push("Sua renda atual está abaixo do mínimo exigido pelo governo espanhol (€2.500/mês).");
+                if (hasLowExperience) reasons.push("O tempo de contrato ou prestação de serviço é inferior a 3 meses (exigência mínima).");
+                if (!hasLowIncome && !hasLowExperience) reasons.push("Seu perfil atual não atende aos critérios fundamentais (renda, tempo de vínculo ou antecedentes).");
+
                 return {
                     title: "Não elegível no momento ❌",
                     description: "Atualmente você não atende aos critérios essenciais para esse visto.",
@@ -203,10 +233,8 @@ const Quiz: React.FC = () => {
                     border: "border-red-400/20",
                     icon: <XCircle className="w-12 h-12 text-red-400" />,
                     details: [
-                        "A modalidade de trabalho ou a origem da renda não se enquadram no visto.",
-                        "A renda atual está abaixo do exigido pelo governo espanhol.",
-                        "Ponto Crítico: Antecedentes criminais ou falta de formação/experiência.",
-                        "O que fazer: Buscar uma oportunidade remota que atenda ao valor mínimo estipulado."
+                        ...reasons,
+                        "O que fazer: Buscar uma oportunidade remota que atenda ao valor mínimo estipulado ou aguardar o tempo de vínculo necessário."
                     ]
                 };
         }
@@ -296,17 +324,40 @@ const Quiz: React.FC = () => {
 
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">WhatsApp</label>
-                                    <div className="relative">
-                                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
-                                        <input
-                                            required
-                                            type="tel"
-                                            placeholder="(00) 00000-0000"
-                                            className="w-full pl-12 pr-5 py-4 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
-                                            value={leadData.phone}
-                                            onChange={e => setLeadData({ ...leadData, phone: e.target.value })}
-                                        />
+                                    <div className="flex gap-2">
+                                        <select
+                                            className="w-24 px-3 py-4 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all appearance-none"
+                                            value={leadData.countryCode}
+                                            onChange={e => setLeadData({ ...leadData, countryCode: e.target.value })}
+                                        >
+                                            <option value="+55">🇧🇷 +55</option>
+                                            <option value="+34">🇪🇸 +34</option>
+                                            <option value="+1">🇺🇸 +1</option>
+                                            <option value="+351">🇵🇹 +351</option>
+                                            <option value="+44">🇬🇧 +44</option>
+                                            <option value="+49">🇩🇪 +49</option>
+                                            <option value="+33">🇫🇷 +33</option>
+                                            <option value="+39">🇮🇹 +39</option>
+                                        </select>
+                                        <div className="relative flex-1">
+                                            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                                            <input
+                                                required
+                                                type="tel"
+                                                placeholder="(00) 00000-0000"
+                                                className={`w-full pl-12 pr-5 py-4 bg-white/5 border rounded-2xl text-white font-bold focus:outline-none transition-all ${phoneError ? 'border-red-500/50' : 'border-white/10 focus:border-brand-yellow'
+                                                    }`}
+                                                value={leadData.phone}
+                                                onChange={e => {
+                                                    setLeadData({ ...leadData, phone: e.target.value });
+                                                    setPhoneError(false);
+                                                }}
+                                            />
+                                        </div>
                                     </div>
+                                    {phoneError && (
+                                        <p className="text-[9px] text-red-400 font-bold uppercase tracking-widest mt-1 pl-2">Por favor, insira um número válido.</p>
+                                    )}
                                 </div>
 
                                 <button
@@ -369,7 +420,7 @@ const Quiz: React.FC = () => {
                                                     whileTap={{ scale: 0.95, backgroundColor: "rgba(250, 204, 21, 1)", color: "rgba(10, 15, 30, 1)" }}
                                                     onClick={(e) => {
                                                         (e.currentTarget as HTMLButtonElement).blur();
-                                                        handleAnswer(opt.points);
+                                                        handleAnswer(opt.points, opt.value);
                                                     }}
                                                     className="w-full p-5 bg-white/5 border border-white/5 rounded-2xl text-left text-white/80 font-bold transition-all outline-none md:hover:bg-brand-yellow md:hover:text-navy-950 md:hover:border-brand-yellow group"
                                                 >
