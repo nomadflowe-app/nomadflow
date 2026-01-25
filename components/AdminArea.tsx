@@ -437,11 +437,11 @@ export const AdminArea: React.FC = () => {
                                                         </span>
                                                     )}
                                                 </div>
-                                                <h3 className="text-white font-bold">{item.name}</h3>
+                                                <h3 className="text-white font-bold">{item.name || 'Sem nome'}</h3>
                                                 <div className="flex flex-wrap gap-4 text-[10px] text-white/40 font-bold uppercase tracking-widest">
-                                                    <span className="flex items-center gap-1"><Mail className="w-3 h-3" /> {item.email}</span>
-                                                    <span className="flex items-center gap-1"><Phone className="w-3 h-3" /> {item.phone}</span>
-                                                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {new Date(item.created_at).toLocaleDateString()}</span>
+                                                    <span className="flex items-center gap-1"><Mail className="w-3 h-3" /> {item.email || 'N/A'}</span>
+                                                    <span className="flex items-center gap-1"><Phone className="w-3 h-3" /> {item.phone || 'N/A'}</span>
+                                                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {item.created_at ? new Date(item.created_at).toLocaleDateString() : 'N/A'}</span>
                                                 </div>
                                             </div>
                                         ) : (
@@ -471,10 +471,10 @@ export const AdminArea: React.FC = () => {
                                         <div className="flex gap-2">
                                             {activeTab === 'Leads' ? (
                                                 <a
-                                                    href={`https://wa.me/${item.phone.replace(/\D/g, '')}`}
+                                                    href={`https://wa.me/${(item.phone || '').replace(/\D/g, '')}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="p-3 bg-green-500/10 text-green-500 rounded-xl hover:bg-green-500 hover:text-white transition-all border border-green-500/20"
+                                                    className={`p-3 bg-green-500/10 text-green-500 rounded-xl hover:bg-green-500 hover:text-white transition-all border border-green-500/20 ${!item.phone && 'opacity-20 pointer-events-none'}`}
                                                 >
                                                     <MessageSquare className="w-4 h-4" />
                                                 </a>
