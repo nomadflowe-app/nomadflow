@@ -119,9 +119,15 @@ const Quiz: React.FC = () => {
             if (result) {
                 setLeadId(result.id);
                 setStep('quiz');
+            } else {
+                // Fallback: Se o banco falhar, deixa o usuário fazer o quiz mesmo assim para não travar
+                console.warn('Banco de dados não salvou o lead, mas permitindo quiz...');
+                setStep('quiz');
             }
         } catch (error) {
             console.error('Error submitting lead:', error);
+            // Fallback total
+            setStep('quiz');
         } finally {
             setLoading(false);
         }
