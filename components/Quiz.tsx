@@ -125,7 +125,8 @@ const Quiz: React.FC = () => {
             const fullPhone = `${leadData.countryCode}${leadData.phone.replace(/\D/g, '')}`;
             const { data: { session } } = await supabase.auth.getSession();
             const result = await saveQuizLeadInitial({
-                ...leadData,
+                name: leadData.name,
+                email: leadData.email,
                 phone: fullPhone,
                 user_id: session?.user?.id
             });

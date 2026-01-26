@@ -640,7 +640,7 @@ export async function saveQuizLeadInitial(lead: { name: string; email: string; p
     .single();
 
   if (error) {
-    console.error('Error saving initial quiz lead:', error);
+    handleSupabaseError(error, 'quiz_leads (insert)');
     return null;
   }
   return data;
@@ -659,7 +659,7 @@ export async function updateQuizLeadFinal(id: string, result: string, score: num
     .single();
 
   if (error) {
-    console.error('Error updating final quiz lead:', error);
+    handleSupabaseError(error, 'quiz_leads (update)');
     return null;
   }
   return data;
@@ -672,7 +672,7 @@ export async function getQuizLeads() {
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('Error fetching quiz leads:', error);
+    handleSupabaseError(error, 'quiz_leads (select)');
     return [];
   }
   return data;
@@ -684,7 +684,7 @@ export async function getQuizStats() {
     .select('status, result');
 
   if (error) {
-    console.error('Error fetching quiz stats:', error);
+    handleSupabaseError(error, 'quiz_leads (stats)');
     return null;
   }
 
