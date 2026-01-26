@@ -132,16 +132,16 @@ const Quiz: React.FC = () => {
             });
 
             if (result) {
+                console.log('[Quiz] Lead saved successfully:', result.id);
                 setLeadId(result.id);
                 setStep('quiz');
             } else {
                 // Fallback: Se o banco falhar, deixa o usuário fazer o quiz mesmo assim para não travar
-                console.warn('Banco de dados não salvou o lead, mas permitindo quiz...');
+                console.error('[Quiz] Failed to save lead to database. Session/RLS issue?');
                 setStep('quiz');
             }
         } catch (error) {
-            console.error('Error submitting lead:', error);
-            // Fallback total
+            console.error('[Quiz] Error submitting lead:', error);
             setStep('quiz');
         } finally {
             setLoading(false);
