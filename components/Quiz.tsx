@@ -47,26 +47,26 @@ const QUESTIONS: Question[] = [
         question: "Qual sua renda média mensal?",
         options: [
             { text: "Acima de €3.000 (~R$ 18.000)", value: "high", points: 15 },
-            { text: "Entre €2.500 e €3.000 (~R$ 15.000 - R$ 18.000)", value: "mid", points: 10 },
-            { text: "Menos de €2.500 (~R$ 15.000)", value: "low", points: 0 },
+            { text: "Entre €2.650 e €3.000 (Mínimo exigido pela lei)", value: "mid", points: 10 },
+            { text: "Menos de €2.650", value: "low", points: 0 },
         ]
     },
     {
         id: 5,
         question: "Você consegue comprovar essa renda?",
         options: [
-            { text: "Sim", value: "yes", points: 10 },
-            { text: "Parcialmente", value: "partial", points: 5 },
-            { text: "Não", value: "no", points: 0 },
+            { text: "Sim (Extratos, Contratos, Declarações)", value: "yes", points: 10 },
+            { text: "Parcialmente (Preciso organizar)", value: "partial", points: 5 },
+            { text: "Não consigo comprovar", value: "no", points: 0 },
         ]
     },
     {
         id: 6,
-        question: "Em qual forma de comprovação profissional você se enquadra?",
+        question: "Como você comprova sua qualificação profissional?",
         options: [
-            { text: "Diploma universitário", value: "degree", points: 10 },
-            { text: "Experiência profissional de 3 anos ou mais comprovada", value: "exp_3y", points: 10 },
-            { text: "Nenhum dos dois", value: "none", points: 0 },
+            { text: "Diploma universitário / Pós-graduação", value: "degree", points: 10 },
+            { text: "Tenho mais de 3 anos de experiência comprovada na área", value: "exp_3y", points: 10 },
+            { text: "Não tenho diploma nem 3 anos de experiência", value: "none", points: 0 },
         ]
     },
     {
@@ -169,18 +169,22 @@ const Quiz: React.FC = () => {
     };
 
     const calculateResult = (currentAnswers = answers) => {
-        // Regras de "Deal-breakers" (Trava obrigatória)
-        const hasLowIncome = currentAnswers.some(a => a.value === 'low'); // Menos de 2.500€
-        const hasLowExperience = currentAnswers.some(a => a.value === 'less_3'); // Menos de 3 meses
-        const hasCriminalRecord = currentAnswers.some(a => a.value === 'yes' && QUESTIONS[6].id === 7);
+        // Regras de "Deal-breakers" (Trava obrigatória baseada na lei)
+        const lowIncome = currentAnswers.find(a => QUESTIONS[3].options.some(opt => opt.value === 'low' && a.value === opt.value)); // Renda < 2650
+        const lowExp = currentAnswers.find(a => QUESTIONS[2].options.some(opt => opt.value === 'less_3' && a.value === opt.value)); // Tempo < 3 meses
+        const noQualification = currentAnswers.find(a => QUESTIONS[5].options.some(opt => opt.value === 'none' && a.value === opt.value)); // Sem diploma/exp
+        const hasCriminal = currentAnswers.find(a => QUESTIONS[6].options.some(opt => opt.value === 'yes' && a.value === opt.value)); // Antecedentes
+        const spanishIncome = currentAnswers.find(a => QUESTIONS[1].options.some(opt => opt.value === 'inside' && a.value === opt.value)); // Renda da Espanha
 
-        if (hasLowIncome || hasLowExperience || hasCriminalRecord) {
+        if (lowIncome || lowExp || noQualification || hasCriminal || spanishIncome) {
             return 'C';
         }
 
         const totalPoints = currentAnswers.reduce((acc, curr) => acc + curr.points, 0);
 
-        if (totalPoints >= 70) return 'A';
+        // Pontuação para A (Elegível): Precisa atingir a maioria dos pontos positivos
+        if (totalPoints >= 60) return 'A';
+        // Pontuação para B (Possível): Atende o mínimo mas com ressalvas
         if (totalPoints >= 40) return 'B';
         return 'C';
     };
@@ -188,54 +192,59 @@ const Quiz: React.FC = () => {
     const getResultData = (result: string) => {
         const hasLowIncome = answers.some(a => a.value === 'low');
         const hasLowExperience = answers.some(a => a.value === 'less_3');
+        const noQualification = answers.some(a => a.value === 'none' && currentQuestion >= 5); // Verificação simples
+        const hasSpanishIncome = answers.some(a => a.value === 'inside');
 
         switch (result) {
             case 'A':
                 return {
                     title: "Elegível ✅",
-                    description: "Você atende aos principais critérios do visto de nômade digital da Espanha.",
+                    description: "Excelente! Seu perfil se alinha perfeitamente com as exigências da Lei de Startups espanhola.",
                     color: "text-green-400",
                     bg: "bg-green-400/10",
                     border: "border-green-400/20",
                     icon: <CheckCircle2 className="w-12 h-12 text-green-400" />,
                     details: [
-                        "Seu perfil profissional remoto está bem estabelecido.",
-                        "Sua renda atende ou supera o mínimo exigido.",
-                        "A documentação acadêmica ou profissional é um ponto forte.",
-                        "Próximos passos: Organizar a lista de documentos e iniciar a aplicação."
+                        "Sua renda está dentro do patamar exigido (~€2.650+).",
+                        "Você possui a qualificação acadêmica ou tempo de mercado necessários.",
+                        "Seu vínculo profissional atende ao período mínimo de 3 meses.",
+                        "Próximos passos: Iniciar a organização da tradução juramentada e apostilamento."
                     ]
                 };
             case 'B':
                 return {
-                    title: "Possivelmente elegível ⚠️",
-                    description: "Você tem um perfil promissor, mas alguns pontos precisam de atenção antes de aplicar.",
+                    title: "Potencial ⚠️",
+                    description: "Seu perfil é bom, mas alguns detalhes técnicos podem levar ao indeferimento se não ajustados.",
                     color: "text-amber-400",
                     bg: "bg-amber-400/10",
                     border: "border-amber-400/20",
                     icon: <AlertCircle className="w-12 h-12 text-amber-400" />,
                     details: [
-                        "Sua renda está próxima do limite e pode precisar de mais garantias.",
-                        "O tempo de vínculo com a empresa ou clientes pode ser um ponto de dúvida.",
-                        "Recomendação: Aguardar completar 3 meses de vínculo estável ou aumentar a renda média.",
-                        "Sugestão: Preparar evidências extras de formação ou experiência profissional."
+                        "Sua comprovação de renda ou tempo de contrato pode estar no limite.",
+                        "Recomendação: Fortalecer o dossiê com cartas de recomendação ou contratos extras.",
+                        "Atenção: Garanta que sua empresa de fora tenha pelo menos 1 ano de existência.",
+                        "Dica: Se possível, adicione um dependente apenas se a renda superar os €3.600."
                     ]
                 };
             default:
                 const reasons = [];
-                if (hasLowIncome) reasons.push("Sua renda atual está abaixo do mínimo exigido pelo governo espanhol (€2.500/mês).");
-                if (hasLowExperience) reasons.push("O tempo de contrato ou prestação de serviço é inferior a 3 meses (exigência mínima).");
-                if (!hasLowIncome && !hasLowExperience) reasons.push("Seu perfil atual não atende aos critérios fundamentais (renda, tempo de vínculo ou antecedentes).");
+                if (hasLowIncome) reasons.push("Renda insuficiente: A lei exige 200% do SMI (aprox. €2.650 mensais).");
+                if (hasLowExperience) reasons.push("Tempo de vínculo: Você precisa de no mínimo 3 meses de relação com a empresa contratante.");
+                if (noQualification) reasons.push("Qualificação: É obrigatório ter ensino superior OU 3 anos de experiência comprovada na área.");
+                if (hasSpanishIncome) reasons.push("Origem da renda: Mais de 20% da sua renda parece vir da Espanha, o que desqualifica este visto específico.");
+
+                if (reasons.length === 0) reasons.push("Seu perfil atual não atende aos critérios fundamentais (renda, tempo de vínculo ou qualificação técnica).");
 
                 return {
-                    title: "Não elegível no momento ❌",
-                    description: "Atualmente você não atende aos critérios essenciais para esse visto.",
+                    title: "Inadequado no momento ❌",
+                    description: "Atualmente, você não cumpre os requisitos legais mínimos da Espanha.",
                     color: "text-red-400",
                     bg: "bg-red-400/10",
                     border: "border-red-400/20",
                     icon: <XCircle className="w-12 h-12 text-red-400" />,
                     details: [
                         ...reasons,
-                        "O que fazer: Buscar uma oportunidade remota que atenda ao valor mínimo estipulado ou aguardar o tempo de vínculo necessário."
+                        "Sugestão: Foque em aumentar seu ticket médio ou aguarde completar o tempo de contrato exigido antes de reinvestir na aplicação."
                     ]
                 };
         }
