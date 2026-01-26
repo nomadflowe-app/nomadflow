@@ -194,6 +194,7 @@ const Quiz: React.FC = () => {
         const hasLowExperience = answers.some(a => a.value === 'less_3');
         const noQualification = answers.some(a => a.value === 'none' && currentQuestion >= 5); // Verificação simples
         const hasSpanishIncome = answers.some(a => a.value === 'inside');
+        const hasPartialProof = answers.some(a => a.value === 'partial');
 
         switch (result) {
             case 'A':
@@ -208,6 +209,7 @@ const Quiz: React.FC = () => {
                         "Sua renda está dentro do patamar exigido (~€2.650+).",
                         "Você possui a qualificação acadêmica ou tempo de mercado necessários.",
                         "Seu vínculo profissional atende ao período mínimo de 3 meses.",
+                        hasPartialProof ? "Atenção: Você marcou que sua comprovação é parcial. Organize seus extratos e contratos antes de aplicar." : "Sua documentação comprobatória parece estar em ordem.",
                         "Próximos passos: Iniciar a organização da tradução juramentada e apostilamento."
                     ]
                 };
@@ -221,6 +223,7 @@ const Quiz: React.FC = () => {
                     icon: <AlertCircle className="w-12 h-12 text-amber-400" />,
                     details: [
                         "Sua comprovação de renda ou tempo de contrato pode estar no limite.",
+                        hasPartialProof ? "Ponto de Atenção: Você precisa organizar melhor seus comprovantes de renda para evitar recusas." : "Garanta que sua comprovação de renda seja robusta.",
                         "Recomendação: Fortalecer o dossiê com cartas de recomendação ou contratos extras.",
                         "Atenção: Garanta que sua empresa de fora tenha pelo menos 1 ano de existência.",
                         "Dica: Se possível, adicione um dependente apenas se a renda superar os €3.600."
