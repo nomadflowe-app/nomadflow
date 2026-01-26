@@ -96,18 +96,30 @@ export const AdminArea: React.FC = () => {
 
     async function loadData() {
         setLoading(true);
-        let result: any[] = [];
-        if (activeTab === 'Notícias') result = await getGuides();
-        else if (activeTab === 'Tutoriais') result = await getTutorials();
-        else if (activeTab === 'Comunidade') result = await getCommunityPosts();
-        else if (activeTab === 'Parceiros') result = await getPartners();
-        else if (activeTab === 'Leads') {
-            const [leads, stats] = await Promise.all([getQuizLeads(), getQuizStats()]);
-            result = leads;
-            setQuizStats(stats);
+        try {
+            let result: any[] = [];
+            if (activeTab === 'Notícias') result = await getGuides();
+            else if (activeTab === 'Tutoriais') result = await getTutorials();
+            else if (activeTab === 'Comunidade') result = await getCommunityPosts();
+            else if (activeTab === 'Parceiros') result = await getPartners();
+            else if (activeTab === 'Leads') {
+                try {
+                    const [leads, stats] = await Promise.all([getQuizLeads(), getQuizStats()]);
+                    result = leads || [];
+                    setQuizStats(stats);
+                    console.log('[Admin] Leads loaded:', leads?.length);
+                } catch (err) {
+                    console.error('[Admin] Error loading Quiz Leads:', err);
+                    showToast('Erro ao carregar leads do quiz.', 'error');
+                }
+            }
+            setData(result);
+        } catch (error) {
+            console.error('[Admin] Error in loadData:', error);
+            showToast('Erro ao carregar dados da aba.', 'error');
+        } finally {
+            setLoading(false);
         }
-        setData(result);
-        setLoading(false);
     }
 
     const handleDelete = async (id: string) => {
