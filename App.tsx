@@ -9,19 +9,17 @@ import {
   Crown,
   ListTodo,
   Newspaper,
-  Settings
+  Settings,
+  Globe
 } from 'lucide-react';
 
+// Eager Loading (Critical Path)
 // Eager Loading (Critical Path)
 import Sidebar from './components/Sidebar';
 import LandingPage from './components/LandingPage';
 import Onboarding from './components/Onboarding';
 import PremiumModal from './components/PremiumModal';
-import { redirectToCheckout } from './lib/stripe';
 import MobileGuard from './components/MobileGuard';
-import AuthModal from './components/AuthModal';
-import DatabaseSetup from './components/DatabaseSetup';
-import ProductWizard from './components/ProductWizard';
 import { NavButton } from './components/NavButton';
 import { UserProfile, UserGoal } from './types';
 import { supabase, signOutUser, getUserProfile, setOnDatabaseError } from './lib/supabase';
@@ -41,8 +39,13 @@ const TermsOfUse = lazy(() => import('./components/TermsOfUse'));
 const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
 const BeAPartner = lazy(() => import('./components/BeAPartner'));
 const Quiz = lazy(() => import('./components/Quiz'));
+const AuthModal = lazy(() => import('./components/AuthModal'));
+const DatabaseSetup = lazy(() => import('./components/DatabaseSetup'));
+const ProductWizard = lazy(() => import('./components/ProductWizard'));
+import ThankYou from './components/ThankYou';
+import SpanishModule from './components/SpanishModule';
 
-type View = 'Dashboard' | 'Tasks' | 'Guides' | 'Members' | 'Profile' | 'Success';
+type View = 'Dashboard' | 'Tasks' | 'Guides' | 'Members' | 'Profile' | 'Success' | 'Spanish' | 'Partners' | 'Admin';
 
 const MainContent: React.FC = () => {
   const [session, setSession] = useState<any>(null);
@@ -120,15 +123,15 @@ const MainContent: React.FC = () => {
       }
     });
 
-    // Detectar retorno do Stripe (Success)
+    // Detectar retorno do Checkout (Success)
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('session_id')) {
+    if (urlParams.get('transaction')) {
       setActiveView('Success');
       window.history.replaceState({}, document.title, "/");
     }
 
     const handleChangeView = (e: any) => setActiveView(e.detail);
-    document.addEventListener('change-view', handleChangeView);
+    window.addEventListener('change-view', handleChangeView);
 
     const handleOpenModal = () => {
       console.log('[App] Abrindo modal de planos...');
@@ -138,7 +141,7 @@ const MainContent: React.FC = () => {
 
     return () => {
       subscription.unsubscribe();
-      document.removeEventListener('change-view', handleChangeView);
+      window.removeEventListener('change-view', handleChangeView);
       window.removeEventListener('open-premium-modal', handleOpenModal);
       clearTimeout(safetyTimeout);
     };
@@ -185,14 +188,12 @@ const MainContent: React.FC = () => {
   };
 
   const handleUpgrade = async (priceId: string) => {
-    let userId = profile?.id;
     let userEmail = profile?.email;
 
-    if (!userId || !userEmail) {
+    if (!userEmail) {
       try {
         const { data: { session: currentSession } } = await supabase.auth.getSession();
         if (currentSession) {
-          userId = currentSession.user.id;
           userEmail = currentSession.user.email;
         }
       } catch (e) {
@@ -200,16 +201,12 @@ const MainContent: React.FC = () => {
       }
     }
 
-    if (!userId || !userEmail) {
+    if (!userEmail) {
       alert('Por favor, faça login novamente para assinar.');
       return;
     }
 
-    try {
-      await redirectToCheckout(userId, userEmail, priceId);
-    } catch (err: any) {
-      alert(err.message || 'Erro ao iniciar checkout.');
-    }
+    // O redirecionamento agora é tratado pelo link direto no PremiumModal.
   };
 
   const renderContent = () => {
@@ -223,6 +220,14 @@ const MainContent: React.FC = () => {
             <Compass className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 text-white animate-pulse" />
           </div>
           <p className="mt-10 text-white font-black tracking-[0.4em] uppercase text-[10px] animate-pulse">Sincronizando com Madrid</p>
+        </div>
+      );
+    }
+
+    if (activeView === 'Success') {
+      return (
+        <div className="min-h-screen font-sans bg-navy-950 flex items-center justify-center p-4">
+          <Success onContinue={() => { setActiveView('Dashboard'); window.location.reload(); }} />
         </div>
       );
     }
@@ -246,6 +251,34 @@ const MainContent: React.FC = () => {
 
     if (!profile?.isOnboarded) {
       return <Onboarding onComplete={handleOnboardingComplete} initialEmail={session?.user?.email} />;
+    }
+
+    // Se acabamos de voltar do checkout, mostramos o sucesso antes de checar o paywall
+    // (JÁ TRATADO ACIMA NO RENDERCONTENT)
+
+    // --- LÓGICA DE BLOQUEIO (PAYWALL) ---
+    const isFreeUser = profile?.tier === 'free' && !profile?.isAdmin;
+
+    if (isFreeUser) {
+      return (
+        <div className="min-h-screen font-sans bg-navy-950 flex items-center justify-center p-4">
+          {/* Mostra modal forçado */}
+          <PremiumModal
+            isOpen={true}
+            onClose={() => { }} // No-op
+            onUpgrade={handleUpgrade}
+            isForced={true}
+            onLogout={handleLogout}
+          />
+
+          {/* Background Fallback (caso modal não cobrisse tudo, mas cobre) */}
+          <div className="text-center space-y-4 max-w-md z-0 opacity-50 blur-sm pointer-events-none">
+            <div className="w-16 h-16 bg-white/5 rounded-full mx-auto" />
+            <div className="h-4 bg-white/5 rounded w-3/4 mx-auto" />
+            <div className="h-4 bg-white/5 rounded w-1/2 mx-auto" />
+          </div>
+        </div>
+      );
     }
 
     return (
@@ -286,6 +319,7 @@ const MainContent: React.FC = () => {
                 {activeView === 'Tasks' && <motion.div key="ts" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}><Tasks /></motion.div>}
                 {activeView === 'Guides' && <motion.div key="gd" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}><Guides /></motion.div>}
                 {activeView === 'Members' && <motion.div key="mb" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}><MembersArea /></motion.div>}
+                {/* {activeView === 'Spanish' && <motion.div key="es" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}><SpanishModule /></motion.div>} */}
                 {activeView === 'Partners' && <motion.div key="pt" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}><PartnersArea /></motion.div>}
                 {activeView === 'Success' && <motion.div key="sc" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.1 }}><Success onContinue={() => { setActiveView('Dashboard'); window.location.reload(); }} /></motion.div>}
                 {activeView === 'Profile' && <motion.div key="pr" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}><Profile onLogout={handleLogout} onUpdate={setProfile} /></motion.div>}
@@ -302,6 +336,7 @@ const MainContent: React.FC = () => {
             <NavButton active={activeView === 'Tasks'} onClick={() => setActiveView('Tasks')} icon={<ListTodo className="w-5 h-5" />} label="Tarefas" />
             <NavButton active={activeView === 'Guides'} onClick={() => setActiveView('Guides')} icon={<Newspaper className="w-5 h-5" />} label="News" />
             <NavButton active={activeView === 'Members'} onClick={() => setActiveView('Members')} icon={<Crown className="w-5 h-5" />} label="Hub" />
+            {/* <NavButton active={activeView === 'Spanish'} onClick={() => setActiveView('Spanish')} icon={<Globe className="w-5 h-5" />} label="Idiomas" /> */}
             {isAdmin ? (
               <NavButton active={activeView === 'Admin'} onClick={() => setActiveView('Admin')} icon={<Settings className="w-5 h-5" />} label="Admin" />
             ) : (
@@ -336,7 +371,7 @@ const MainContent: React.FC = () => {
 
   return (
     <ToastProvider>
-      <ChecklistProvider>
+      <ChecklistProvider userEmail={profile?.email}>
         <MobileGuard>
           {renderContent()}
         </MobileGuard>
@@ -358,6 +393,7 @@ const App: React.FC = () => {
         <Route path="/privacidade" element={<PrivacyPolicy />} />
         <Route path="/seja-parceiro" element={<BeAPartner />} />
         <Route path="/quiz" element={<Quiz />} />
+        <Route path="/obrigado" element={<ThankYou />} />
         <Route path="/*" element={<MainContent />} />
       </Routes>
     </Suspense>
