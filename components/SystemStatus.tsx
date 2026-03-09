@@ -1,11 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle2, XCircle, Loader2, Server, Shield, CreditCard, Activity, X } from 'lucide-react';
+import { CheckCircle2, XCircle, Loader2, Server, Shield, Activity, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { loadStripe } from '@stripe/stripe-js';
-
-// Reusing the key via environment variables
-const STRIPE_PUBLIC_KEY = import.meta.env.VITE_STRIPE_PUBLIC_KEY || '';
 
 interface StatusItem {
     id: string;
@@ -23,7 +19,7 @@ export const SystemStatus: React.FC<SystemStatusProps> = ({ isOpen, onClose }) =
     const [checks, setChecks] = useState<StatusItem[]>([
         { id: 'db', label: 'Banco de Dados (Supabase)', status: 'loading' },
         { id: 'auth', label: 'Autenticação (Auth)', status: 'loading' },
-        { id: 'stripe', label: 'Pagamentos (Stripe)', status: 'loading' },
+        { id: 'webhook', label: 'Webhook (Kiwify)', status: 'loading' },
     ]);
 
     useEffect(() => {
@@ -58,13 +54,22 @@ export const SystemStatus: React.FC<SystemStatusProps> = ({ isOpen, onClose }) =
             updateCheck('auth', 'error', error.message);
         }
 
-        // 3. Check Stripe
+        // 3. Check Hub (Kiwify Function)
         try {
-            const stripe = await loadStripe(STRIPE_PUBLIC_KEY);
-            if (!stripe) throw new Error('Falha ao inicializar SDK.');
-            updateCheck('stripe', 'success', 'SDK Inicializado corretamente.');
+            const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.replace(/\/$/, '');
+            if (!supabaseUrl) throw new Error('VITE_SUPABASE_URL não definido');
+
+            const response = await fetch(`${supabaseUrl}/functions/v1/kiwify-webhook`, { method: 'OPTIONS' });
+
+            if (response.ok || response.status === 405) { // 405 Method Not Allowed is fine for OPTIONS if CORS is ok
+                updateCheck('webhook', 'success', 'Edge Function operacional.');
+            } else if (response.status === 404) {
+                updateCheck('webhook', 'error', 'Função não encontrada (404). Realize o deploy no Supabase.');
+            } else {
+                updateCheck('webhook', 'error', `Erro no endpoint (Status: ${response.status})`);
+            }
         } catch (error: any) {
-            updateCheck('stripe', 'error', error.message);
+            updateCheck('webhook', 'error', 'Falha de rede ou CORS. A função está publicada?');
         }
     };
 
@@ -98,7 +103,7 @@ export const SystemStatus: React.FC<SystemStatusProps> = ({ isOpen, onClose }) =
                                             }`}>
                                             {check.id === 'db' && <Server className="w-5 h-5" />}
                                             {check.id === 'auth' && <Shield className="w-5 h-5" />}
-                                            {check.id === 'stripe' && <CreditCard className="w-5 h-5" />}
+                                            {check.id === 'webhook' && <Activity className="w-5 h-5" />}
                                         </div>
                                         <div>
                                             <h3 className="text-white font-bold text-sm">{check.label}</h3>

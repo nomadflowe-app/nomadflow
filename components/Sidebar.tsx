@@ -7,7 +7,8 @@ import {
     UserCircle,
     Settings,
     LogOut,
-    Handshake
+    Handshake,
+    Globe
 } from 'lucide-react';
 import { UserProfile } from '../types';
 
@@ -25,6 +26,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, isAdmin, p
         { id: 'Tasks', label: 'Tarefas', icon: ListTodo },
         { id: 'Guides', label: 'News', icon: Newspaper },
         { id: 'Members', label: 'Hub Elite', icon: Crown },
+        // { id: 'Spanish', label: 'Espanhol', icon: Globe },
         { id: 'Partners', label: 'Parceiros', icon: Handshake },
     ];
 

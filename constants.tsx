@@ -4,15 +4,15 @@ import { ChecklistItem, ContentArticle } from './types';
 export const INITIAL_CHECKLIST: ChecklistItem[] = [
   // Trabalho e Renda
   { id: '1', title: 'Contrato de Trabalho/Prestação', category: 'Trabalho', description: 'Contrato com empresa fora da Espanha (mínimo 3 meses de antiguidade).', isCompleted: false, needsTranslation: true, isTranslated: false, needsApostille: false, isApostilled: false },
-  { id: '2', title: 'Prova de Renda (Min. 2640€)', category: 'Financeiro', description: 'Extratos ou holerites provando 200% do SMI espanhol.', isCompleted: false, needsTranslation: true, isTranslated: false, needsApostille: false, isApostilled: false },
+  { id: '2', title: 'Prova de Renda (Min. 2442€)', category: 'Financeiro', description: 'Extratos ou holerites provando 200% do SMI espanhol.', isCompleted: false, needsTranslation: true, isTranslated: false, needsApostille: false, isApostilled: false },
   { id: '3', title: 'Experiência Profissional (3 anos)', category: 'Trabalho', description: 'Ou diploma universitário na área de atuação.', isCompleted: false, needsTranslation: true, isTranslated: false, needsApostille: true, isApostilled: false },
   { id: '4', title: 'Certificado de Cobertura SS', category: 'Trabalho', description: 'Documento da Previdência Social ou prova de seguro equivalente.', isCompleted: false, needsTranslation: true, isTranslated: false, needsApostille: true, isApostilled: false },
-  
+
   // Identificação e Antecedentes
   { id: '6', title: 'Passaporte Completo', category: 'Pessoal', description: 'Cópia de TODAS as páginas (inclusive em branco).', isCompleted: false, needsTranslation: false, isTranslated: false, needsApostille: false, isApostilled: false },
   { id: '9', title: 'Antecedentes Criminais (Brasil)', category: 'Pessoal', description: 'Certidão da PF emitida nos últimos 90 dias.', isCompleted: false, needsTranslation: true, isTranslated: false, needsApostille: true, isApostilled: false },
   { id: '10', title: 'Declaração de Inexistência', category: 'Pessoal', description: 'Declaração de não possuir antecedentes nos últimos 5 anos.', isCompleted: false, needsTranslation: true, isTranslated: false, needsApostille: false, isApostilled: false },
-  
+
   // Formulários e Taxas Espanha
   { id: '13', title: 'Formulário MI-T', category: 'Formulários', description: 'Solicitação de autorização de residência para teletrabalho.', isCompleted: false, needsTranslation: false, isTranslated: false, needsApostille: false, isApostilled: false },
   { id: '14', title: 'Taxa Modelo 790-038', category: 'Formulários', description: 'Comprovante de pagamento da taxa UGE-CE.', isCompleted: false, needsTranslation: false, isTranslated: false, needsApostille: false, isApostilled: false },
@@ -56,10 +56,10 @@ export const MOCK_ARTICLES: ContentArticle[] = [
 export const MOCK_NEWS: ContentArticle[] = [
   {
     id: 'n1',
-    title: 'Mudança no SMI 2024: O que muda para o Visto?',
+    title: 'Mudança no SMI 2026: O que muda para o Visto?',
     category: 'Urgente',
     excerpt: 'Governo espanhol atualiza Salário Mínimo e impacta requisitos de renda.',
-    content: 'O governo da Espanha aprovou o novo SMI (Salário Mínimo Interprofesional) para 2024. Como o Visto de Nômade Digital exige 200% do SMI para o titular, o valor mínimo de comprovação mensal subiu para aproximadamente €2.640. Esta mudança vale para novos processos enviados à UGE-CE a partir de agora.',
+    content: 'O governo da Espanha aprovou o novo SMI (Salário Mínimo Interprofesional) para 2026. Como o Visto de Nômade Digital exige 200% do SMI para o titular, o valor mínimo de comprovação mensal subiu para aproximadamente €2.442. Esta mudança vale para novos processos enviados à UGE-CE a partir de agora.',
     isPremium: false,
     readTime: '5 min',
     thumbnail: 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?auto=format&fit=crop&q=80&w=800'

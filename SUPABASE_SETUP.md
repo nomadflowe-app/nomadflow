@@ -6,7 +6,6 @@ This project does not currently have automatic migrations. To make the app work,
 
 1.  Copy `.env.example` to `.env`.
 2.  Fill in your `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` from your Supabase Project Settings > API.
-3.  Fill in `VITE_STRIPE_PUBLIC_KEY` if you are using Stripe.
 
 ## 2. Database Schema (SQL)
 
@@ -131,26 +130,105 @@ create table if not exists public.notifications (
   created_at timestamptz default now()
 );
 
+-- 10. QUIZ LEADS
+create table if not exists public.quiz_leads (
+    id uuid default gen_random_uuid() primary key,
+    name text,
+    email text,
+    phone text,
+    status text default 'started',
+    result text,
+    score integer,
+    answers jsonb default '[]'::jsonb,
+    user_id uuid,
+    created_at timestamp with time zone default now(),
+    updated_at timestamp with time zone default now()
+);
+
 -- RLS Helper
 alter table public.profiles enable row level security;
 create policy "Users can view their own profile" on public.profiles for select using (auth.uid() = user_id);
 create policy "Users can update their own profile" on public.profiles for update using (auth.uid() = user_id);
 create policy "Users can insert their own profile" on public.profiles for insert with check (auth.uid() = user_id);
 
+-- QUIZ LEADS Policies
+alter table public.quiz_leads enable row level security;
+drop policy if exists "Enable insert for all" on public.quiz_leads;
+drop policy if exists "Enable read access for all" on public.quiz_leads;
+drop policy if exists "Enable update for owners" on public.quiz_leads;
+
+create policy "Enable insert for all" on public.quiz_leads for insert with check (true);
+create policy "Enable read access for all" on public.quiz_leads for select using (true);
+create policy "Enable update for owners" on public.quiz_leads for update using (true);
+
+-- COLUNAS EXTRAS (CRITICAL FIX)
+alter table public.quiz_leads add column if not exists criminal_record text;
+alter table public.quiz_leads add column if not exists time_spain text;
+
+-- 3. Security Definer Function (Guaranteed Save)
+create or replace function public.complete_quiz_lead_v2(
+  p_lead_id uuid,
+  p_result text,
+  p_score integer,
+  p_answers jsonb,
+  p_remote_work text,
+  p_income_source text,
+  p_job_tenure text,
+  p_company_age text,
+  p_family_config text,
+  p_kids_count text,
+  p_salary text,
+  p_income_proof text,
+  p_qualification text,
+  p_criminal_record text,
+  p_time_spain text
+)
+returns jsonb
+language plpgsql
+security definer
+as $$
+declare
+  updated_record jsonb;
+begin
+  update public.quiz_leads
+  set 
+    result = p_result,
+    score = p_score,
+    answers = p_answers,
+    status = 'completed',
+    updated_at = now(),
+    remote_work = p_remote_work,
+    income_source = p_income_source,
+    job_tenure = p_job_tenure,
+    company_age = p_company_age,
+    family_config = p_family_config,
+    kids_count = p_kids_count,
+    salary = p_salary,
+    income_proof = p_income_proof,
+    qualification = p_qualification,
+    criminal_record = p_criminal_record,
+    time_spain = p_time_spain
+  where id = p_lead_id
+  returning to_jsonb(quiz_leads.*) into updated_record;
+
+  return updated_record;
+end;
+$$;
+
+-- GARANTIR PERMISSÕES DE EXECUÇÃO (CRÍTICO)
+GRANT EXECUTE ON FUNCTION public.complete_quiz_lead_v2 TO postgres, anon, authenticated, service_role;
+GRANT ALL ON TABLE public.quiz_leads TO postgres, anon, authenticated, service_role;
+
 -- Add more RLS policies as needed for other tables (public read, private write usually)
 ```
 
-## 3. Edge Functions Configuration (Stripe)
+## 3. Edge Functions Configuration (Hotmart)
 
-If you are using the `create-checkout` function and `stripe-webhook`:
-
-1.  Navigate to your local project root.
-2.  Login to Supabase CLI (if installed) or use the Dashboard to set secrets.
-3.  Set the following secrets for your functions:
+Para o webhook da Hotmart funcionar, configure os segredos:
 
 ```bash
-supabase secrets set STRIPE_SECRET_KEY=sk_test_...
-supabase secrets set STRIPE_WEBHOOK_SECRET=whsec_...
+npx supabase secrets set HOTMART_WEBHOOK_SECRET=seu_token
+npx supabase secrets set HOTMART_PROD_MENSAL=id_produto_mensal
+npx supabase secrets set HOTMART_PROD_ANUAL=id_produto_anual
+npx supabase secrets set HOTMART_PROD_PRO=id_produto_pro
 ```
-
-*Note: You can find these keys in your Stripe Dashboard.*

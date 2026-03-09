@@ -9,10 +9,25 @@ interface SuccessProps {
 
 const Success: React.FC<SuccessProps> = ({ onContinue }) => {
     useEffect(() => {
-        // Efeito de confete ao carregar
+        // Fallback para window.confetti
+        const fire = (window as any).confetti || confetti;
+
+        const runConfetti = () => {
+            fire({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 },
+                zIndex: 10000,
+                scalar: 1.2
+            });
+        };
+
+        // Delay para mobile
+        const timeoutId = setTimeout(runConfetti, 500);
+
         const duration = 3 * 1000;
         const animationEnd = Date.now() + duration;
-        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 10000, scalar: 1.1 };
 
         const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
 
@@ -24,11 +39,14 @@ const Success: React.FC<SuccessProps> = ({ onContinue }) => {
             }
 
             const particleCount = 50 * (timeLeft / duration);
-            confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
-            confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+            fire({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+            fire({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
         }, 250);
 
-        return () => clearInterval(interval);
+        return () => {
+            clearInterval(interval);
+            clearTimeout(timeoutId);
+        };
     }, []);
 
     return (

@@ -1,0 +1,339 @@
+[
+  {
+    "id": "6fce0ce0-daaf-43e5-9024-487980d89bc9",
+    "created_at": "2026-03-02T11:29:24.60752+00:00",
+    "name": "Verification Agent",
+    "email": "verify2@agent.com",
+    "phone": "+5511888888888",
+    "status": "started",
+    "result": null,
+    "score": null,
+    "user_id": null,
+    "remote_work": null,
+    "income_source": null,
+    "job_tenure": null,
+    "company_age": null,
+    "family_config": null,
+    "kids_count": null,
+    "salary": null,
+    "income_proof": null,
+    "qualification": null,
+    "criminal_record": null,
+    "time_spain": null,
+    "answers": null
+  },
+  {
+    "id": "14baec9d-98ad-4eb3-8af4-32be2c665e68",
+    "created_at": "2026-03-02T11:26:04.520549+00:00",
+    "name": "Verification Agent",
+    "email": "verify@agent.com",
+    "phone": "+5511888888888",
+    "status": "started",
+    "result": null,
+    "score": null,
+    "user_id": null,
+    "remote_work": null,
+    "income_source": null,
+    "job_tenure": null,
+    "company_age": null,
+    "family_config": null,
+    "kids_count": null,
+    "salary": null,
+    "income_proof": null,
+    "qualification": null,
+    "criminal_record": null,
+    "time_spain": null,
+    "answers": null
+  },
+  {
+    "id": "87e5c14d-517d-462d-befe-6e0078a373f8",
+    "created_at": "2026-03-02T11:20:53.403985+00:00",
+    "name": "Test Agent",
+    "email": "test@agent.com",
+    "phone": "+5511999999999",
+    "status": "started",
+    "result": null,
+    "score": null,
+    "user_id": null,
+    "remote_work": null,
+    "income_source": null,
+    "job_tenure": null,
+    "company_age": null,
+    "family_config": null,
+    "kids_count": null,
+    "salary": null,
+    "income_proof": null,
+    "qualification": null,
+    "criminal_record": null,
+    "time_spain": null,
+    "answers": null
+  },
+  {
+    "id": "4eafb1c7-09d0-4b29-a78a-8ad36bee755e",
+    "created_at": "2026-03-02T10:49:59.487488+00:00",
+    "name": "Erik",
+    "email": "gcmerik@icloud.com",
+    "phone": "+5531991434188",
+    "status": "started",
+    "result": null,
+    "score": null,
+    "user_id": null,
+    "remote_work": null,
+    "income_source": null,
+    "job_tenure": null,
+    "company_age": null,
+    "family_config": null,
+    "kids_count": null,
+    "salary": null,
+    "income_proof": null,
+    "qualification": null,
+    "criminal_record": null,
+    "time_spain": null,
+    "answers": null
+  },
+  {
+    "id": "0fa0b075-30e4-4ec6-af64-3da75b8586c8",
+    "created_at": "2026-03-02T10:41:36.646853+00:00",
+    "name": "André Luiz Costa Filho",
+    "email": "oandrecost@icloud.com",
+    "phone": "+5542991241060",
+    "status": "started",
+    "result": null,
+    "score": null,
+    "user_id": null,
+    "remote_work": null,
+    "income_source": null,
+    "job_tenure": null,
+    "company_age": null,
+    "family_config": null,
+    "kids_count": null,
+    "salary": null,
+    "income_proof": null,
+    "qualification": null,
+    "criminal_record": null,
+    "time_spain": null,
+    "answers": null
+  },
+  {
+    "id": "7b72ff72-a646-4e26-9fa3-47d8b1ddd266",
+    "created_at": "2026-03-02T10:33:13.481761+00:00",
+    "name": "Sidnei pereira Vitalino ",
+    "email": "sd-c.vitalino@bol.com.br",
+    "phone": "+393508692307",
+    "status": "started",
+    "result": null,
+    "score": null,
+    "user_id": null,
+    "remote_work": null,
+    "income_source": null,
+    "job_tenure": null,
+    "company_age": null,
+    "family_config": null,
+    "kids_count": null,
+    "salary": null,
+    "income_proof": null,
+    "qualification": null,
+    "criminal_record": null,
+    "time_spain": null,
+    "answers": null
+  },
+  {
+    "id": "a625d70a-7f5d-413e-a4a3-bfe3cc9e0839",
+    "created_at": "2026-03-02T09:15:30.743058+00:00",
+    "name": "Felipe Arbage",
+    "email": "arbagefelipe@gmail.com",
+    "phone": "+553530838783221",
+    "status": "started",
+    "result": null,
+    "score": null,
+    "user_id": null,
+    "remote_work": null,
+    "income_source": null,
+    "job_tenure": null,
+    "company_age": null,
+    "family_config": null,
+    "kids_count": null,
+    "salary": null,
+    "income_proof": null,
+    "qualification": null,
+    "criminal_record": null,
+    "time_spain": null,
+    "answers": null
+  },
+  {
+    "id": "38aa43a1-c6f0-48fb-a194-8eb4be415883",
+    "created_at": "2026-03-02T01:55:56.736675+00:00",
+    "name": "Raiane Mirlei Micheletti de Almeida (Sync)",
+    "email": "Rayane_mirlei@hotmail.com",
+    "phone": "+5566996630707",
+    "status": "completed",
+    "result": "C",
+    "score": 80,
+    "user_id": null,
+    "remote_work": "freelancer",
+    "income_source": "outside",
+    "job_tenure": "more_1y",
+    "company_age": "old_company",
+    "family_config": "spouse_kids",
+    "kids_count": "2",
+    "salary": "low",
+    "income_proof": "yes",
+    "qualification": "degree",
+    "criminal_record": "no",
+    "time_spain": "3y_more",
+    "answers": [
+      {
+        "id": "remote_work",
+        "value": "freelancer",
+        "points": 10
+      },
+      {
+        "id": "income_source",
+        "value": "outside",
+        "points": 10
+      },
+      {
+        "id": "job_tenure",
+        "value": "more_1y",
+        "points": 10
+      },
+      {
+        "id": "company_age",
+        "value": "old_company",
+        "points": 10
+      },
+      {
+        "id": "family_config",
+        "value": "spouse_kids",
+        "points": 0
+      },
+      {
+        "id": "kids_count",
+        "value": "2",
+        "points": 0
+      },
+      {
+        "id": "salary",
+        "value": "low",
+        "points": 0
+      },
+      {
+        "id": "income_proof",
+        "value": "yes",
+        "points": 10
+      },
+      {
+        "id": "qualification",
+        "value": "degree",
+        "points": 10
+      },
+      {
+        "id": "criminal_record",
+        "value": "no",
+        "points": 10
+      },
+      {
+        "id": "time_spain",
+        "value": "3y_more",
+        "points": 10
+      }
+    ]
+  },
+  {
+    "id": "cb2c58c7-2122-47b6-96bc-78ffd9a85a2e",
+    "created_at": "2026-03-02T01:54:25.470519+00:00",
+    "name": "Raiane Mirlei Micheletti de Almeida",
+    "email": "Rayane_mirlei@hotmail.com",
+    "phone": "+5566996630707",
+    "status": "started",
+    "result": null,
+    "score": null,
+    "user_id": null,
+    "remote_work": null,
+    "income_source": null,
+    "job_tenure": null,
+    "company_age": null,
+    "family_config": null,
+    "kids_count": null,
+    "salary": null,
+    "income_proof": null,
+    "qualification": null,
+    "criminal_record": null,
+    "time_spain": null,
+    "answers": null
+  },
+  {
+    "id": "8cf33af4-ac13-45a4-8011-c8d0cdfc0412",
+    "created_at": "2026-03-02T01:49:18.268039+00:00",
+    "name": "Levy  (Sync)",
+    "email": "levyvieira71@gmail.com",
+    "phone": "+5521900000000",
+    "status": "completed",
+    "result": "C",
+    "score": 70,
+    "user_id": null,
+    "remote_work": "freelancer",
+    "income_source": "outside",
+    "job_tenure": "more_1y",
+    "company_age": "new_company",
+    "family_config": "alone",
+    "kids_count": null,
+    "salary": "low",
+    "income_proof": "yes",
+    "qualification": "exp_3y",
+    "criminal_record": "no",
+    "time_spain": "3y_more",
+    "answers": [
+      {
+        "id": "remote_work",
+        "value": "freelancer",
+        "points": 10
+      },
+      {
+        "id": "income_source",
+        "value": "outside",
+        "points": 10
+      },
+      {
+        "id": "job_tenure",
+        "value": "more_1y",
+        "points": 10
+      },
+      {
+        "id": "company_age",
+        "value": "new_company",
+        "points": 0
+      },
+      {
+        "id": "family_config",
+        "value": "alone",
+        "points": 0
+      },
+      {
+        "id": "salary",
+        "value": "low",
+        "points": 0
+      },
+      {
+        "id": "income_proof",
+        "value": "yes",
+        "points": 10
+      },
+      {
+        "id": "qualification",
+        "value": "exp_3y",
+        "points": 10
+      },
+      {
+        "id": "criminal_record",
+        "value": "no",
+        "points": 10
+      },
+      {
+        "id": "time_spain",
+        "value": "3y_more",
+        "points": 10
+      }
+    ]
+  }
+]

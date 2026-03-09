@@ -15,7 +15,9 @@ import {
     User,
     Mail,
     Phone,
-    Clock
+    Clock,
+    Eye,
+    GraduationCap
 } from 'lucide-react';
 import {
     getGuides,
@@ -36,10 +38,12 @@ import {
     getQuizLeads,
     getQuizStats
 } from '../lib/supabase';
+import { QUESTIONS } from './QuizQuestions';
 import { useToast } from '../context/ToastContext';
 import { SystemStatus } from './SystemStatus';
+import SpanishTeacherPortal from './SpanishTeacherPortal';
 
-type AdminTab = 'Notícias' | 'Tutoriais' | 'Comunidade' | 'Parceiros' | 'Notificações' | 'Leads';
+type AdminTab = 'Notícias' | 'Tutoriais' | 'Comunidade' | 'Parceiros' | 'Notificações' | 'Leads'; // | 'Professor';
 
 export const AdminArea: React.FC = () => {
     const { showToast } = useToast();
@@ -50,6 +54,55 @@ export const AdminArea: React.FC = () => {
     const [isCreating, setIsCreating] = useState(false);
     const [isSystemStatusOpen, setIsSystemStatusOpen] = useState(false);
     const [quizStats, setQuizStats] = useState<any>(null);
+    const [selectedLead, setSelectedLead] = useState<any>(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [showRawLead, setShowRawLead] = useState(false);
+    const [statusFilter, setStatusFilter] = useState<'all' | 'completed' | 'started'>('all');
+    const [onlyWithResult, setOnlyWithResult] = useState(false);
+
+    const filteredData = data.filter(item => {
+        if (activeTab !== 'Leads') return true;
+
+        // Search Filter
+        const query = searchQuery.toLowerCase();
+        const matchesSearch = !searchQuery || (
+            (item.name && item.name.toLowerCase().includes(query)) ||
+            (item.email && item.email.toLowerCase().includes(query)) ||
+            (item.phone && item.phone.toLowerCase().includes(query))
+        );
+
+        if (!matchesSearch) return false;
+
+        // Status Filter
+        if (statusFilter !== 'all' && item.status !== statusFilter) return false;
+
+        // Results Filter
+        if (onlyWithResult && !item.result) return false;
+
+        return true;
+    });
+
+    const getQuestionText = (q: any, answers: any[]) => {
+        if (typeof q.question === 'function') {
+            return q.id === 'salary' ? 'Renda Mensal Aproximada' : 'Questão Condicional';
+        }
+        return q.question;
+    };
+
+    const getAnswerText = (questionId: string, answerValue: string) => {
+        const question = QUESTIONS.find(q => q.id === questionId);
+        if (!question) return answerValue;
+        const option = question.options.find(o => o.value === answerValue);
+        return option ? option.text : answerValue;
+    };
+
+    const translateValue = (id: string, val: string) => {
+        if (!val) return 'N/A';
+        const question = QUESTIONS.find(q => q.id === id);
+        if (!question) return val;
+        const option = question.options.find(o => o.value === val);
+        return option ? option.text : val;
+    };
 
     // Form States
     const [formData, setFormData] = useState<any>({
@@ -121,6 +174,13 @@ export const AdminArea: React.FC = () => {
             setLoading(false);
         }
     }
+
+    const DetailItem = ({ label, value }: { label: string; value: string }) => (
+        <div className="p-3 bg-white/5 rounded-xl border border-white/5">
+            <p className="text-[10px] uppercase tracking-widest text-white/40 mb-1">{label}</p>
+            <p className="text-white text-xs font-bold truncate">{value || 'N/A'}</p>
+        </div>
+    );
 
     const handleDelete = async (id: string) => {
         if (!window.confirm('Tem certeza que deseja excluir este item?')) return;
@@ -354,7 +414,8 @@ export const AdminArea: React.FC = () => {
                         { id: 'Parceiros', icon: <Handshake className="w-4 h-4" /> },
                         { id: 'Comunidade', icon: <MessageSquare className="w-4 h-4" /> },
                         { id: 'Leads', icon: <User className="w-4 h-4 text-green-400" /> },
-                        { id: 'Notificações', icon: <MessageSquare className="w-4 h-4 text-brand-yellow" /> }
+                        { id: 'Notificações', icon: <MessageSquare className="w-4 h-4 text-brand-yellow" /> },
+                        // { id: 'Professor', icon: <GraduationCap className="w-4 h-4 text-brand-yellow" /> }
                     ].map(tab => (
                         <button
                             key={tab.id}
@@ -362,7 +423,7 @@ export const AdminArea: React.FC = () => {
                             className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all flex items-center gap-2 flex-shrink-0 ${activeTab === tab.id
                                 ? 'bg-white text-navy-950 border-white shadow-xl'
                                 : 'bg-navy-900/50 text-white/40 border-white/5 hover:bg-white/5'
-                                }`}
+                                } `}
                         >
                             {tab.icon}
                             {tab.id}
@@ -371,8 +432,10 @@ export const AdminArea: React.FC = () => {
                 </div>
             </header>
 
-            <div className="space-y-4">
-                {activeTab === 'Notificações' ? (
+            <div className={`space-y-4 ${activeTab === 'Professor' ? 'max-w-7xl mx-auto' : ''}`}>
+                {activeTab === 'Professor' ? (
+                    <SpanishTeacherPortal />
+                ) : activeTab === 'Notificações' ? (
                     <div className="flex flex-col items-center justify-center py-10 gap-4">
                         <button
                             onClick={() => {
@@ -407,58 +470,112 @@ export const AdminArea: React.FC = () => {
                                 animate={{ opacity: 1, y: 0 }}
                                 className="grid gap-4"
                             >
-                                {activeTab === 'Leads' && quizStats && (
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                                        <div className="bg-white/5 border border-white/10 p-4 rounded-2xl">
-                                            <p className="text-[10px] font-black uppercase text-white/40 mb-1">Iniciados</p>
-                                            <p className="text-2xl font-black text-white">{quizStats.started}</p>
+                                {activeTab === 'Leads' && (
+                                    <>
+                                        {quizStats && (
+                                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-2">
+                                                <div className="bg-white/5 border border-white/10 p-4 rounded-2xl">
+                                                    <p className="text-[10px] font-black uppercase text-white/40 mb-1">Iniciados</p>
+                                                    <p className="text-2xl font-black text-white">{quizStats.started}</p>
+                                                </div>
+                                                <div className="bg-white/5 border border-white/10 p-4 rounded-2xl">
+                                                    <p className="text-[10px] font-black uppercase text-white/40 mb-1">Finalizados</p>
+                                                    <p className="text-2xl font-black text-white">{quizStats.completed}</p>
+                                                </div>
+                                                <div className="bg-white/5 border border-white/10 p-4 rounded-2xl">
+                                                    <p className="text-[10px] font-black uppercase text-white/40 mb-1">Conversão</p>
+                                                    <p className="text-2xl font-black text-brand-yellow">{quizStats.conversionRate.toFixed(1)}%</p>
+                                                </div>
+                                                <div className="bg-white/5 border border-white/10 p-4 rounded-2xl">
+                                                    <p className="text-[10px] font-black uppercase text-white/40 mb-1">Elegíveis (A)</p>
+                                                    <p className="text-2xl font-black text-green-400">{quizStats.results.A}</p>
+                                                </div>
+                                            </div>
+                                        )}
+                                        <div className="flex flex-col lg:flex-row gap-4 mb-6">
+                                            <div className="relative flex-1">
+                                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                    <User className="h-4 w-4 text-white/30" />
+                                                </div>
+                                                <input
+                                                    type="text"
+                                                    className="block w-full pl-10 pr-3 py-3 border border-white/10 rounded-xl leading-5 bg-white/5 text-white placeholder-white/30 focus:outline-none focus:bg-white/10 focus:border-brand-yellow sm:text-sm transition-all font-medium"
+                                                    placeholder="Buscar lead por nome, email ou telefone..."
+                                                    value={searchQuery}
+                                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                                />
+                                            </div>
+
+                                            <div className="flex bg-white/5 rounded-xl border border-white/10 p-1">
+                                                {[
+                                                    { id: 'all', label: 'Todos' },
+                                                    { id: 'started', label: 'Iniciados' },
+                                                    { id: 'completed', label: 'Finalizados' }
+                                                ].map(f => (
+                                                    <button
+                                                        key={f.id}
+                                                        onClick={() => setStatusFilter(f.id as any)}
+                                                        className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${statusFilter === f.id
+                                                            ? 'bg-brand-yellow text-navy-950'
+                                                            : 'text-white/40 hover:text-white'
+                                                            }`}
+                                                    >
+                                                        {f.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+
+                                            <button
+                                                onClick={() => setOnlyWithResult(!onlyWithResult)}
+                                                className={`px-4 py-2 rounded-xl border transition-all text-[10px] font-black uppercase tracking-widest flex items-center gap-2 ${onlyWithResult
+                                                    ? 'bg-green-500/10 border-green-500/50 text-green-400'
+                                                    : 'bg-white/5 border-white/10 text-white/40 hover:bg-white/10'
+                                                    }`}
+                                            >
+                                                <div className={`w-2 h-2 rounded-full ${onlyWithResult ? 'bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.5)]' : 'bg-white/20'}`} />
+                                                Apenas com Resultado
+                                            </button>
                                         </div>
-                                        <div className="bg-white/5 border border-white/10 p-4 rounded-2xl">
-                                            <p className="text-[10px] font-black uppercase text-white/40 mb-1">Finalizados</p>
-                                            <p className="text-2xl font-black text-white">{quizStats.completed}</p>
-                                        </div>
-                                        <div className="bg-white/5 border border-white/10 p-4 rounded-2xl">
-                                            <p className="text-[10px] font-black uppercase text-white/40 mb-1">Conversão</p>
-                                            <p className="text-2xl font-black text-brand-yellow">{quizStats.conversionRate.toFixed(1)}%</p>
-                                        </div>
-                                        <div className="bg-white/5 border border-white/10 p-4 rounded-2xl">
-                                            <p className="text-[10px] font-black uppercase text-white/40 mb-1">Elegíveis (A)</p>
-                                            <p className="text-2xl font-black text-green-400">{quizStats.results.A}</p>
-                                        </div>
-                                    </div>
+                                    </>
                                 )}
 
-                                {data.map(item => (
+                                {filteredData.map(item => (
                                     <div
                                         key={item.id}
-                                        className="glass-card p-6 rounded-[2rem] border-white/5 bg-white/5 flex justify-between items-center group hover:bg-white/10 transition-all border border-transparent hover:border-white/10"
+                                        className="glass-card p-4 md:p-6 rounded-[1.5rem] md:rounded-[2rem] border-white/5 bg-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 group hover:bg-white/10 transition-all border border-transparent hover:border-white/10"
                                     >
                                         {activeTab === 'Leads' ? (
-                                            <div className="flex-1 space-y-1">
-                                                <div className="flex items-center gap-2">
-                                                    <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${item.status === 'completed' ? 'bg-green-400/10 text-green-400' : 'bg-white/10 text-white/40'
+                                            <div className="flex-1 w-full flex flex-col md:flex-row gap-4">
+                                                {/* Status & Result Badges */}
+                                                <div className="flex flex-row md:flex-col gap-2 shrink-0 justify-center min-w-[100px]">
+                                                    <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl text-center border ${item.status === 'completed'
+                                                        ? 'bg-green-400/10 text-green-400 border-green-500/20'
+                                                        : 'bg-white/5 text-white/30 border-white/5'
                                                         }`}>
-                                                        {item.status === 'completed' ? 'Finalizado' : 'Iniciado (Abandono)'}
+                                                        {item.status === 'completed' ? 'Finalizado' : 'Iniciado'}
                                                     </span>
                                                     {item.result && (
-                                                        <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${item.result === 'A' ? 'bg-green-400/10 text-green-400' :
-                                                            item.result === 'B' ? 'bg-amber-400/10 text-amber-400' :
-                                                                'bg-red-400/10 text-red-400'
+                                                        <span className={`text-sm font-black uppercase tracking-tighter px-3 py-2 rounded-xl text-center border shadow-lg ${item.result === 'A' ? 'bg-green-400 text-navy-950 border-green-400' :
+                                                                item.result === 'B' ? 'bg-amber-400 text-navy-950 border-amber-400' :
+                                                                    'bg-red-500 text-white border-red-500'
                                                             }`}>
-                                                            Resultado {item.result}
+                                                            Result: {item.result}
                                                         </span>
                                                     )}
                                                 </div>
-                                                <h3 className="text-white font-bold">{item.name || 'Sem nome'}</h3>
-                                                <div className="flex flex-wrap gap-4 text-[10px] text-white/40 font-bold uppercase tracking-widest">
-                                                    <span className="flex items-center gap-1"><Mail className="w-3 h-3" /> {item.email || 'N/A'}</span>
-                                                    <span className="flex items-center gap-1"><Phone className="w-3 h-3" /> {item.phone || 'N/A'}</span>
-                                                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {item.created_at ? new Date(item.created_at).toLocaleDateString() : 'N/A'}</span>
+
+                                                <div className="flex-1 space-y-2">
+                                                    <h3 className="text-white font-bold text-lg">{item.name || 'Sem nome'}</h3>
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px] text-white/50 font-bold uppercase tracking-widest">
+                                                        <span className="flex items-center gap-1 truncate"><Mail className="w-3 h-3 text-white/30 shrink-0" /> {item.email || '-'}</span>
+                                                        <span className="flex items-center gap-1 truncate"><Phone className="w-3 h-3 text-white/30 shrink-0" /> {item.phone || '-'}</span>
+                                                        <span className="flex items-center gap-1 truncate col-span-1 sm:col-span-2"><Clock className="w-3 h-3 text-white/30 shrink-0" /> {item.created_at ? new Date(item.created_at).toLocaleString('pt-BR') : '-'}</span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         ) : (
-                                            <div className="space-y-1">
-                                                <div className="flex items-center gap-2">
+                                            <div className="space-y-1 w-full">
+                                                <div className="flex items-center gap-2 flex-wrap">
                                                     <span className="text-[9px] font-black uppercase tracking-widest text-brand-yellow bg-brand-yellow/10 px-2 py-0.5 rounded-md">
                                                         {item.category || item.instructor || (item.name ? 'Parceiro' : 'Geral')}
                                                     </span>
@@ -473,23 +590,32 @@ export const AdminArea: React.FC = () => {
                                                         </span>
                                                     )}
                                                 </div>
-                                                <h3 className="text-white font-bold leading-tight">{item.title || item.user_name || item.name}</h3>
+                                                <h3 className="text-white font-bold leading-tight line-clamp-2">{item.title || item.user_name || item.name}</h3>
                                                 <p className="text-white/40 text-xs line-clamp-1 italic">
                                                     {item.excerpt || item.content || item.description || 'Sem descrição'}
                                                 </p>
                                             </div>
                                         )}
 
-                                        <div className="flex gap-2">
+                                        <div className="flex gap-2 w-full md:w-auto mt-2 md:mt-0 justify-end">
                                             {activeTab === 'Leads' ? (
-                                                <a
-                                                    href={`https://wa.me/${(item.phone || '').replace(/\D/g, '')}`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className={`p-3 bg-green-500/10 text-green-500 rounded-xl hover:bg-green-500 hover:text-white transition-all border border-green-500/20 ${!item.phone && 'opacity-20 pointer-events-none'}`}
-                                                >
-                                                    <MessageSquare className="w-4 h-4" />
-                                                </a>
+                                                <>
+                                                    <a
+                                                        href={`https://wa.me/${(item.phone || '').replace(/\D/g, '')}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className={`p-3 bg-green-500/10 text-green-500 rounded-xl hover:bg-green-500 hover:text-white transition-all border border-green-500/20 ${!item.phone && 'opacity-20 pointer-events-none'}`}
+                                                    >
+                                                        <MessageSquare className="w-4 h-4" />
+                                                    </a >
+                                                    <button
+                                                        onClick={() => setSelectedLead(item)}
+                                                        className="p-3 bg-brand-yellow/10 text-brand-yellow rounded-xl hover:bg-brand-yellow hover:text-navy-950 transition-all border border-brand-yellow/20"
+                                                        title="Ver Respostas Detalhadas"
+                                                    >
+                                                        <Eye className="w-4 h-4" />
+                                                    </button>
+                                                </>
                                             ) : (
                                                 <>
                                                     <button
@@ -508,289 +634,404 @@ export const AdminArea: React.FC = () => {
                                                     )}
                                                 </>
                                             )}
-                                        </div>
-                                    </div>
+                                        </div >
+                                    </div >
                                 ))}
 
-                                {data.length === 0 && (
-                                    <div className="text-center py-20 bg-white/5 rounded-[3rem] border border-dashed border-white/10">
-                                        <p className="text-white/20 font-black uppercase text-xs tracking-widest">Nenhum registro encontrado</p>
-                                    </div>
-                                )}
-                            </motion.div>
+                                {
+                                    filteredData.length === 0 && (
+                                        <div className="text-center py-20 bg-white/5 rounded-[3rem] border border-dashed border-white/10">
+                                            <p className="text-white/20 font-black uppercase text-xs tracking-widest">{searchQuery ? 'Nenhum lead encontrado para a busca' : 'Nenhum registro encontrado'}</p>
+                                        </div>
+                                    )
+                                }
+                            </motion.div >
                         )}
-                    </AnimatePresence>
+                    </AnimatePresence >
                 )}
-            </div>
+            </div >
 
             {/* MODAL DE CRIAÇÃO */}
             <AnimatePresence>
-                {isCreating && (
-                    <div className="fixed inset-0 z-[1000] bg-navy-950/80 backdrop-blur-xl flex items-center justify-center p-6 overflow-y-auto">
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            className="glass-card bg-[#0a0f1d] rounded-[3rem] p-8 w-full max-w-xl border-white/10 shadow-2xl space-y-6 my-auto"
-                        >
+                {
+                    isCreating && (
+                        <div className="fixed inset-0 z-[1000] bg-navy-950/80 backdrop-blur-xl flex items-center justify-center p-6 overflow-y-auto">
+                            <motion.div
+                                initial={{ scale: 0.9, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                className="glass-card bg-[#0a0f1d] rounded-[3rem] p-8 w-full max-w-xl border-white/10 shadow-2xl space-y-6 my-auto"
+                            >
 
 
-                            <div className="flex justify-between items-center">
-                                <h2 className="text-2xl font-black text-white tracking-tight">
-                                    {editingId ? 'Editar' : 'Adicionar'} {activeTab === 'Notícias' ? 'Notícia/Guia' : activeTab === 'Parceiros' ? 'Parceiro' : 'Tutorial'}
-                                </h2>
-                                <button onClick={() => { setIsCreating(false); setEditingId(null); }} className="p-2 bg-white/10 rounded-xl text-white hover:bg-white/20">
-                                    <X className="w-5 h-5" />
-                                </button>
-                            </div>
-
-                            <div className="space-y-4">
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">
-                                        {activeTab === 'Parceiros' ? 'Nome da Empresa' : activeTab === 'Notificações' ? 'Título da Notificação' : 'Título'}
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
-                                        placeholder="Título..."
-                                        value={formData.title}
-                                        onChange={e => setFormData({ ...formData, title: e.target.value })}
-                                    />
+                                <div className="flex justify-between items-center">
+                                    <h2 className="text-2xl font-black text-white tracking-tight">
+                                        {editingId ? 'Editar' : 'Adicionar'} {activeTab === 'Notícias' ? 'Notícia/Guia' : activeTab === 'Parceiros' ? 'Parceiro' : 'Tutorial'}
+                                    </h2>
+                                    <button onClick={() => { setIsCreating(false); setEditingId(null); }} className="p-2 bg-white/10 rounded-xl text-white hover:bg-white/20">
+                                        <X className="w-5 h-5" />
+                                    </button>
                                 </div>
 
-                                {activeTab === 'Notificações' ? (
-                                    <>
-                                        <div className="space-y-1">
-                                            <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Mensagem</label>
-                                            <textarea
-                                                className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
-                                                placeholder="Escreva sua mensagem curta aqui..."
-                                                rows={3}
-                                                maxLength={200}
-                                                value={formData.content}
-                                                onChange={e => setFormData({ ...formData, content: e.target.value })}
-                                            />
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-4">
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">
+                                            {activeTab === 'Parceiros' ? 'Nome da Empresa' : activeTab === 'Notificações' ? 'Título da Notificação' : 'Título'}
+                                        </label>
+                                        <input
+                                            type="text"
+                                            className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
+                                            placeholder="Título..."
+                                            value={formData.title}
+                                            onChange={e => setFormData({ ...formData, title: e.target.value })}
+                                        />
+                                    </div>
+
+                                    {activeTab === 'Notificações' ? (
+                                        <>
                                             <div className="space-y-1">
-                                                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Tipo</label>
-                                                <select
+                                                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Mensagem</label>
+                                                <textarea
                                                     className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
-                                                    value={formData.notification_type}
-                                                    onChange={e => setFormData({ ...formData, notification_type: e.target.value })}
-                                                >
-                                                    <option value="info" className="bg-navy-900">Informação (Amarelo)</option>
-                                                    <option value="news" className="bg-navy-900">Novidade (Azul)</option>
-                                                    <option value="warning" className="bg-navy-900">Alerta (Vermelho)</option>
-                                                </select>
-                                            </div>
-                                            <div className="space-y-1">
-                                                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Link de Ação (Opcional)</label>
-                                                <input
-                                                    type="text"
-                                                    className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
-                                                    placeholder="https://..."
-                                                    value={formData.action_url}
-                                                    onChange={e => setFormData({ ...formData, action_url: e.target.value })}
+                                                    placeholder="Escreva sua mensagem curta aqui..."
+                                                    rows={3}
+                                                    maxLength={200}
+                                                    value={formData.content}
+                                                    onChange={e => setFormData({ ...formData, content: e.target.value })}
                                                 />
                                             </div>
-                                        </div>
-                                    </>
-                                ) : activeTab === 'Notícias' ? (
-                                    <>
-                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Tipo</label>
+                                                    <select
+                                                        className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
+                                                        value={formData.notification_type}
+                                                        onChange={e => setFormData({ ...formData, notification_type: e.target.value })}
+                                                    >
+                                                        <option value="info" className="bg-navy-900">Informação (Amarelo)</option>
+                                                        <option value="news" className="bg-navy-900">Novidade (Azul)</option>
+                                                        <option value="warning" className="bg-navy-900">Alerta (Vermelho)</option>
+                                                    </select>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Link de Ação (Opcional)</label>
+                                                    <input
+                                                        type="text"
+                                                        className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
+                                                        placeholder="https://..."
+                                                        value={formData.action_url}
+                                                        onChange={e => setFormData({ ...formData, action_url: e.target.value })}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </>
+                                    ) : activeTab === 'Notícias' ? (
+                                        <>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Categoria</label>
+                                                    <input
+                                                        type="text"
+                                                        className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
+                                                        placeholder="Ex: Urgente, Visto..."
+                                                        value={formData.category}
+                                                        onChange={e => setFormData({ ...formData, category: e.target.value })}
+                                                    />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Tempo de Leitura</label>
+                                                    <input
+                                                        type="text"
+                                                        className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
+                                                        placeholder="5 min"
+                                                        value={formData.read_time}
+                                                        onChange={e => setFormData({ ...formData, read_time: e.target.value })}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Resumo (Excerpt)</label>
+                                                <textarea
+                                                    className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
+                                                    placeholder="Uma frase curta..."
+                                                    rows={2}
+                                                    value={formData.excerpt}
+                                                    onChange={e => setFormData({ ...formData, excerpt: e.target.value })}
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Conteúdo Completo</label>
+                                                <textarea
+                                                    className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
+                                                    placeholder="O texto principal aqui..."
+                                                    rows={4}
+                                                    value={formData.content}
+                                                    onChange={e => setFormData({ ...formData, content: e.target.value })}
+                                                />
+                                            </div>
+                                        </>
+                                    ) : activeTab === 'Parceiros' ? (
+                                        <>
                                             <div className="space-y-1">
                                                 <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Categoria</label>
                                                 <input
                                                     type="text"
                                                     className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
-                                                    placeholder="Ex: Urgente, Visto..."
+                                                    placeholder="Vistos, Financeiro, Moradia..."
                                                     value={formData.category}
                                                     onChange={e => setFormData({ ...formData, category: e.target.value })}
                                                 />
                                             </div>
-                                            <div className="space-y-1">
-                                                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Tempo de Leitura</label>
-                                                <input
-                                                    type="text"
-                                                    className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
-                                                    placeholder="5 min"
-                                                    value={formData.read_time}
-                                                    onChange={e => setFormData({ ...formData, read_time: e.target.value })}
-                                                />
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Whatsapp</label>
+                                                    <input
+                                                        type="text"
+                                                        className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
+                                                        placeholder="5511999999999"
+                                                        value={formData.whatsapp}
+                                                        onChange={e => setFormData({ ...formData, whatsapp: e.target.value })}
+                                                    />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Site URL</label>
+                                                    <input
+                                                        type="text"
+                                                        className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
+                                                        placeholder="https://..."
+                                                        value={formData.site_url}
+                                                        onChange={e => setFormData({ ...formData, site_url: e.target.value })}
+                                                    />
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Resumo (Excerpt)</label>
-                                            <textarea
-                                                className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
-                                                placeholder="Uma frase curta..."
-                                                rows={2}
-                                                value={formData.excerpt}
-                                                onChange={e => setFormData({ ...formData, excerpt: e.target.value })}
-                                            />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Conteúdo Completo</label>
-                                            <textarea
-                                                className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
-                                                placeholder="O texto principal aqui..."
-                                                rows={4}
-                                                value={formData.content}
-                                                onChange={e => setFormData({ ...formData, content: e.target.value })}
-                                            />
-                                        </div>
-                                    </>
-                                ) : activeTab === 'Parceiros' ? (
-                                    <>
-                                        <div className="space-y-1">
-                                            <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Categoria</label>
-                                            <input
-                                                type="text"
-                                                className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
-                                                placeholder="Vistos, Financeiro, Moradia..."
-                                                value={formData.category}
-                                                onChange={e => setFormData({ ...formData, category: e.target.value })}
-                                            />
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-1">
-                                                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Whatsapp</label>
-                                                <input
-                                                    type="text"
-                                                    className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
-                                                    placeholder="5511999999999"
-                                                    value={formData.whatsapp}
-                                                    onChange={e => setFormData({ ...formData, whatsapp: e.target.value })}
-                                                />
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Cupom</label>
+                                                    <input
+                                                        type="text"
+                                                        className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
+                                                        placeholder="NOMAD10"
+                                                        value={formData.discount_code}
+                                                        onChange={e => setFormData({ ...formData, discount_code: e.target.value })}
+                                                    />
+                                                </div>
+                                                <div className="flex items-center gap-3 px-2 pt-6">
+                                                    <input
+                                                        type="checkbox"
+                                                        id="exclusive"
+                                                        className="w-5 h-5 rounded-md border-white/10 bg-white/5 checked:bg-brand-yellow"
+                                                        checked={formData.is_exclusive}
+                                                        onChange={e => setFormData({ ...formData, is_exclusive: e.target.checked })}
+                                                    />
+                                                    <label htmlFor="exclusive" className="text-xs font-bold text-white cursor-pointer select-none">É Exclusivo?</label>
+                                                </div>
                                             </div>
                                             <div className="space-y-1">
-                                                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Site URL</label>
-                                                <input
-                                                    type="text"
+                                                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Descrição da Oferta</label>
+                                                <textarea
                                                     className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
-                                                    placeholder="https://..."
-                                                    value={formData.site_url}
-                                                    onChange={e => setFormData({ ...formData, site_url: e.target.value })}
+                                                    placeholder="Descreva o benefício..."
+                                                    rows={4}
+                                                    value={formData.content}
+                                                    onChange={e => setFormData({ ...formData, content: e.target.value })}
                                                 />
                                             </div>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-1">
-                                                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Cupom</label>
-                                                <input
-                                                    type="text"
-                                                    className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
-                                                    placeholder="NOMAD10"
-                                                    value={formData.discount_code}
-                                                    onChange={e => setFormData({ ...formData, discount_code: e.target.value })}
-                                                />
-                                            </div>
-                                            <div className="flex items-center gap-3 px-2 pt-6">
-                                                <input
-                                                    type="checkbox"
-                                                    id="exclusive"
-                                                    className="w-5 h-5 rounded-md border-white/10 bg-white/5 checked:bg-brand-yellow"
-                                                    checked={formData.is_exclusive}
-                                                    onChange={e => setFormData({ ...formData, is_exclusive: e.target.checked })}
-                                                />
-                                                <label htmlFor="exclusive" className="text-xs font-bold text-white cursor-pointer select-none">É Exclusivo?</label>
-                                            </div>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Descrição da Oferta</label>
-                                            <textarea
-                                                className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
-                                                placeholder="Descreva o benefício..."
-                                                rows={4}
-                                                value={formData.content}
-                                                onChange={e => setFormData({ ...formData, content: e.target.value })}
-                                            />
-                                        </div>
-                                    </>
-                                ) : (
-                                    <>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-1">
-                                                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Instrutor</label>
-                                                <input
-                                                    type="text"
-                                                    className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
-                                                    placeholder="Nome do especialista..."
-                                                    value={formData.instructor}
-                                                    onChange={e => setFormData({ ...formData, instructor: e.target.value })}
-                                                />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Duração</label>
-                                                <input
-                                                    type="text"
-                                                    className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
-                                                    placeholder="15 min"
-                                                    value={formData.duration}
-                                                    onChange={e => setFormData({ ...formData, duration: e.target.value })}
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Link do Vídeo (YouTube)</label>
-                                            <input
-                                                type="text"
-                                                className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
-                                                placeholder="Ex: https://youtu.be/..."
-                                                value={formData.video_url}
-                                                onChange={e => setFormData({ ...formData, video_url: e.target.value })}
-                                            />
-                                        </div>
-                                        <div className="flex items-center gap-3 px-2">
-                                            <input
-                                                type="checkbox"
-                                                id="dripped"
-                                                className="w-5 h-5 rounded-md border-white/10 bg-white/5 checked:bg-orange-500"
-                                                checked={formData.is_dripped}
-                                                onChange={e => setFormData({ ...formData, is_dripped: e.target.checked })}
-                                            />
-                                            <label htmlFor="dripped" className="text-xs font-bold text-white cursor-pointer select-none">Liberação após 7 dias? (Dripping)</label>
-                                        </div>
-                                    </>
-                                )}
-
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">{activeTab === 'Parceiros' ? 'URL do Logo' : 'URL da Imagem (Thumbnail)'}</label>
-                                    <input
-                                        type="text"
-                                        className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
-                                        placeholder="https://images.unsplash.com/..."
-                                        value={formData.thumbnail}
-                                        onChange={e => setFormData({ ...formData, thumbnail: e.target.value })}
-                                    />
-                                </div>
-
-                                <button
-                                    onClick={handleCreate}
-                                    disabled={isSaving}
-                                    className={`w-full py-4 rounded-2xl font-black uppercase tracking-widest transition-all shadow-xl flex items-center justify-center gap-3 ${isSaving
-                                        ? 'bg-white/20 text-white/40 cursor-not-allowed'
-                                        : 'bg-brand-yellow text-navy-950 hover:bg-white shadow-brand-yellow/10'
-                                        }`}
-                                >
-                                    {isSaving ? (
-                                        <>
-                                            <div className="w-5 h-5 border-2 border-navy-950/20 border-t-navy-950 rounded-full animate-spin" />
-                                            Salvando...
                                         </>
                                     ) : (
                                         <>
-
-                                            <Save className="w-5 h-5" />
-                                            {activeTab === 'Notificações' ? 'Enviar Notificação' : editingId ? 'Salvar Alterações' : 'Salvar Conteúdo'}
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Instrutor</label>
+                                                    <input
+                                                        type="text"
+                                                        className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
+                                                        placeholder="Nome do especialista..."
+                                                        value={formData.instructor}
+                                                        onChange={e => setFormData({ ...formData, instructor: e.target.value })}
+                                                    />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Duração</label>
+                                                    <input
+                                                        type="text"
+                                                        className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
+                                                        placeholder="15 min"
+                                                        value={formData.duration}
+                                                        onChange={e => setFormData({ ...formData, duration: e.target.value })}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Link do Vídeo (YouTube)</label>
+                                                <input
+                                                    type="text"
+                                                    className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
+                                                    placeholder="Ex: https://youtu.be/..."
+                                                    value={formData.video_url}
+                                                    onChange={e => setFormData({ ...formData, video_url: e.target.value })}
+                                                />
+                                            </div>
+                                            <div className="flex items-center gap-3 px-2">
+                                                <input
+                                                    type="checkbox"
+                                                    id="dripped"
+                                                    className="w-5 h-5 rounded-md border-white/10 bg-white/5 checked:bg-orange-500"
+                                                    checked={formData.is_dripped}
+                                                    onChange={e => setFormData({ ...formData, is_dripped: e.target.checked })}
+                                                />
+                                                <label htmlFor="dripped" className="text-xs font-bold text-white cursor-pointer select-none">Liberação após 7 dias? (Dripping)</label>
+                                            </div>
                                         </>
                                     )}
-                                </button>
-                            </div>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
+
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">{activeTab === 'Parceiros' ? 'URL do Logo' : 'URL da Imagem (Thumbnail)'}</label>
+                                        <input
+                                            type="text"
+                                            className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
+                                            placeholder="https://images.unsplash.com/..."
+                                            value={formData.thumbnail}
+                                            onChange={e => setFormData({ ...formData, thumbnail: e.target.value })}
+                                        />
+                                    </div>
+
+                                    <button
+                                        onClick={handleCreate}
+                                        disabled={isSaving}
+                                        className={`w-full py-4 rounded-2xl font-black uppercase tracking-widest transition-all shadow-xl flex items-center justify-center gap-3 ${isSaving
+                                            ? 'bg-white/20 text-white/40 cursor-not-allowed'
+                                            : 'bg-brand-yellow text-navy-950 hover:bg-white shadow-brand-yellow/10'
+                                            }`}
+                                    >
+                                        {isSaving ? (
+                                            <>
+                                                <div className="w-5 h-5 border-2 border-navy-950/20 border-t-navy-950 rounded-full animate-spin" />
+                                                Salvando...
+                                            </>
+                                        ) : (
+                                            <>
+
+                                                <Save className="w-5 h-5" />
+                                                {activeTab === 'Notificações' ? 'Enviar Notificação' : editingId ? 'Salvar Alterações' : 'Salvar Conteúdo'}
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )
+                }
+            </AnimatePresence >
+
+            {/* MODAL DE DETALHES DO LEAD */}
+            <AnimatePresence>
+                {
+                    selectedLead && (
+                        <div className="fixed inset-0 z-[1000] bg-navy-950/80 backdrop-blur-xl flex items-center justify-center p-6 overflow-y-auto">
+                            <motion.div
+                                initial={{ scale: 0.9, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                exit={{ scale: 0.9, opacity: 0 }}
+                                className="glass-card bg-[#0a0f1d] rounded-[2rem] p-8 w-full max-w-2xl border-white/10 shadow-2xl space-y-6 my-auto"
+                            >
+                                <div className="flex justify-between items-center border-b border-white/10 pb-4">
+                                    <div>
+                                        <h2 className="text-xl font-black text-white tracking-tight">Detalhes do Quiz</h2>
+                                        <p className="text-white/40 text-sm">{selectedLead.name}</p>
+                                    </div>
+                                    <button onClick={() => setSelectedLead(null)} className="p-2 bg-white/10 rounded-xl text-white hover:bg-white/20">
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
+
+                                <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                                    <div className="grid grid-cols-2 gap-4 mb-4">
+                                        <div className="p-4 bg-white/5 rounded-xl border border-white/5">
+                                            <p className="text-[10px] uppercase tracking-widest text-white/40">Status</p>
+                                            <p className="text-white font-bold">{selectedLead.status === 'completed' ? 'Finalizado' : 'Incompleto'}</p>
+                                        </div>
+                                        <div className="p-4 bg-white/5 rounded-xl border border-white/5">
+                                            <p className="text-[10px] uppercase tracking-widest text-white/40">Resultado</p>
+                                            <p className={`font-bold ${selectedLead.result === 'A' ? 'text-green-400' : selectedLead.result === 'B' ? 'text-amber-400' : 'text-red-400'}`}>
+                                                {selectedLead.result || 'N/A'}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <h3 className="text-sm font-black text-white uppercase tracking-widest mt-6 mb-2">Respostas</h3>
+
+                                    {(() => {
+                                        let answers = selectedLead.answers;
+                                        // Fallback para caso o dado venha como string JSON do banco
+                                        if (typeof answers === 'string') {
+                                            try { answers = JSON.parse(answers); } catch (e) { answers = []; }
+                                        }
+
+                                        const hasAnswers = Array.isArray(answers) && answers.length > 0;
+
+                                        return (
+                                            <div className="space-y-6">
+                                                {/* Seção 1: Respostas Estruturadas (Colunas do Banco) */}
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <DetailItem label="Renda" value={translateValue('salary', selectedLead.salary)} />
+                                                    <DetailItem label="Comprovação" value={translateValue('income_proof', selectedLead.income_proof)} />
+                                                    <DetailItem label="Fonte Renda" value={translateValue('income_source', selectedLead.income_source)} />
+                                                    <DetailItem label="Trabalho" value={translateValue('remote_work', selectedLead.remote_work)} />
+                                                    <DetailItem label="Tempo Exp" value={translateValue('job_tenure', selectedLead.job_tenure)} />
+                                                    <DetailItem label="Tempo Emp" value={translateValue('company_age', selectedLead.company_age)} />
+                                                    <DetailItem label="Família" value={translateValue('family_config', selectedLead.family_config)} />
+                                                    <DetailItem label="Dependentes" value={selectedLead.kids_count} />
+                                                    <DetailItem label="Qualificação" value={translateValue('qualification', selectedLead.qualification)} />
+                                                    <DetailItem label="Antecedentes" value={translateValue('criminal_record', selectedLead.criminal_record)} />
+                                                </div>
+
+                                                <div className="border-t border-white/10 pt-6">
+                                                    <div className="flex justify-between items-center mb-4">
+                                                        <h3 className="text-sm font-black text-white uppercase tracking-widest">Fluxo de Respostas</h3>
+                                                        <button
+                                                            onClick={() => setShowRawLead(!showRawLead)}
+                                                            className="text-[9px] font-black uppercase tracking-widest text-white/40 hover:text-brand-yellow transition-colors"
+                                                        >
+                                                            {showRawLead ? 'Ver Lista' : 'Ver JSON Bruto'}
+                                                        </button>
+                                                    </div>
+
+                                                    {showRawLead ? (
+                                                        <div className="p-4 bg-black/40 rounded-xl border border-white/5 overflow-x-auto">
+                                                            <pre className="text-[10px] text-blue-300 font-mono">
+                                                                {JSON.stringify(selectedLead, null, 2)}
+                                                            </pre>
+                                                        </div>
+                                                    ) : hasAnswers ? (
+                                                        <div className="space-y-3">
+                                                            {answers.map((ans: any, idx: number) => {
+                                                                const question = QUESTIONS.find(q => q.id === (ans.id || ans.questionId));
+                                                                const questionText = question ? getQuestionText(question, answers) : (ans.id || ans.questionId || 'Questão desconhecida');
+                                                                const answerText = getAnswerText(question?.id || ans.id || ans.questionId, ans.value);
+
+                                                                return (
+                                                                    <div key={idx} className="p-4 bg-white/5 rounded-xl border border-white/5 group hover:border-brand-yellow/30 transition-all">
+                                                                        <p className="text-[10px] text-brand-yellow font-black uppercase tracking-widest mb-1 opacity-60">{questionText}</p>
+                                                                        <p className="text-white text-sm font-bold">{answerText}</p>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex flex-col items-center justify-center py-10 border border-dashed border-white/10 rounded-xl space-y-2">
+                                                            <p className="text-white/40 italic text-sm">Nenhum detalhe de fluxo salvo.</p>
+                                                            <p className="text-[10px] text-white/20 uppercase font-black">ID: {selectedLead.id}</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
+                                </div>
+                            </motion.div>
+                        </div>
+                    )
+                }
+            </AnimatePresence >
 
             <div className="p-6 rounded-[2rem] bg-brand-yellow/10 border border-brand-yellow/20 space-y-4">
                 <div className="flex items-center gap-3 text-brand-yellow">

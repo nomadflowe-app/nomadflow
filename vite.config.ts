@@ -24,6 +24,19 @@ export default defineConfig(({ mode }) => {
         output: {
           manualChunks(id) {
             if (id.includes('node_modules')) {
+              // Core React
+              if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
+                return 'react-vendor';
+              }
+              // Supabase (Database)
+              if (id.includes('@supabase')) {
+                return 'supabase-vendor';
+              }
+              // UI Libraries (Heavy)
+              if (id.includes('framer-motion') || id.includes('lucide-react')) {
+                return 'ui-vendor';
+              }
+              // Others
               return 'vendor';
             }
           },

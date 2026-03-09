@@ -38,6 +38,7 @@ export interface UserProfile {
   yearsOfExperience: number;
   tier?: 'free' | 'elite' | 'mensal' | 'anual' | 'pro';
   isAdmin?: boolean;
+  hasSpanishAccess?: boolean;
   subscribedAt?: string;
 }
 

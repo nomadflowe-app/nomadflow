@@ -166,7 +166,7 @@ const Profile: React.FC<ProfileProps> = ({ onLogout, onUpdate }) => {
 
       {profile?.tier && profile.tier !== 'free' && (
         <a
-          href="https://wa.me/5511999999999"
+          href="https://wa.me/5594984342484"
           target="_blank"
           rel="noopener noreferrer"
           className="w-full py-5 flex items-center justify-center gap-3 text-green-400 font-black uppercase tracking-widest text-xs rounded-[2rem] bg-green-500/5 border border-green-500/10 hover:bg-green-500 hover:text-white transition-all shadow-xl mt-4"

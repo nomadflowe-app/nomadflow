@@ -37,7 +37,11 @@ import {
 
   MessageCircle,
   Edit3,
-  Save
+  Save,
+  Lightbulb,
+  Trophy,
+  Zap,
+  HelpCircle as HelpIcon
 } from 'lucide-react';
 import { ContentProtection } from './ContentProtection';
 import { CommunityPost as ICommunityPost, UserProfile } from '../types';
@@ -89,10 +93,10 @@ const MembersArea: React.FC = () => {
   const [activeCommunityFilter, setActiveCommunityFilter] = useState<string>('Tudo');
   const [isCreatingPost, setIsCreatingPost] = useState(false);
   const [newPostContent, setNewPostContent] = useState('');
-  const [newPostCategory, setNewPostCategory] = useState('Dica');
+  const [newPostCategory, setNewPostCategory] = useState('Dicas');
   const [editingPost, setEditingPost] = useState<ICommunityPost | null>(null);
   const [editPostContent, setEditPostContent] = useState('');
-  const [editPostCategory, setEditPostCategory] = useState('Dica');
+  const [editPostCategory, setEditPostCategory] = useState('Dicas');
 
   // State for expanded comments
   const [expandedPostId, setExpandedPostId] = useState<string | null>(null);
@@ -196,7 +200,7 @@ const MembersArea: React.FC = () => {
 
       setPosts([newPost, ...posts]);
       setNewPostContent('');
-      setNewPostCategory('Dica');
+      setNewPostCategory('Dicas');
       setIsCreatingPost(false);
     }
   };
@@ -213,7 +217,7 @@ const MembersArea: React.FC = () => {
       setPosts(posts.map(p => p.id === editingPost.id ? { ...p, content: editPostContent, category: editPostCategory } : p));
       setEditingPost(null);
       setEditPostContent('');
-      setEditPostCategory('Dica');
+      setEditPostCategory('Dicas');
     }
   };
 
@@ -271,7 +275,7 @@ const MembersArea: React.FC = () => {
             </div>
             {isPremiumUser && (
               <a
-                href="https://wa.me/5511999999999"
+                href="https://wa.me/5594984342484"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-2xl text-green-400 hover:bg-green-500 hover:text-white transition-all shadow-lg"
@@ -401,7 +405,7 @@ const MembersArea: React.FC = () => {
                 <motion.div key="community" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
                   {/* Community Filters */}
                   <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
-                    {['Tudo', 'Dúvidas', 'Conquistas', 'Networking', 'Dicas'].map((filter) => (
+                    {['Tudo', 'Dúvidas', 'Conquistas', 'Network', 'Dicas'].map((filter) => (
                       <button
                         key={filter}
                         onClick={() => setActiveCommunityFilter(filter)}
@@ -580,16 +584,22 @@ const MembersArea: React.FC = () => {
                   <div className="space-y-1">
                     <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Categoria</label>
                     <div className="flex flex-wrap gap-2">
-                      {['Dica', 'Networking', 'Dúvidas', 'Conquistas'].map(cat => (
+                      {[
+                        { id: 'Dicas', icon: <Lightbulb className="w-3 h-3" /> },
+                        { id: 'Network', icon: <Users className="w-3 h-3" /> },
+                        { id: 'Dúvidas', icon: <HelpCircle className="w-3 h-3" /> },
+                        { id: 'Conquistas', icon: <Trophy className="w-3 h-3" /> }
+                      ].map(cat => (
                         <button
-                          key={cat}
-                          onClick={() => setNewPostCategory(cat)}
-                          className={`px-3 py-1.5 md:px-4 md:py-2 rounded-full text-[10px] md:text-xs font-bold transition-all ${newPostCategory === cat
-                            ? 'bg-brand-yellow text-navy-950'
-                            : 'bg-white/5 text-white hover:bg-white/10'
+                          key={cat.id}
+                          onClick={() => setNewPostCategory(cat.id)}
+                          className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 border ${newPostCategory === cat.id
+                            ? 'bg-brand-yellow text-navy-950 border-brand-yellow shadow-lg shadow-brand-yellow/20'
+                            : 'bg-white/5 text-white/40 border-white/5 hover:bg-white/10 hover:text-white'
                             }`}
                         >
-                          {cat}
+                          {cat.icon}
+                          {cat.id}
                         </button>
                       ))}
                     </div>
@@ -632,16 +642,22 @@ const MembersArea: React.FC = () => {
                   <div className="space-y-1">
                     <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Categoria</label>
                     <div className="flex flex-wrap gap-2">
-                      {['Dica', 'Networking', 'Dúvidas', 'Conquistas'].map(cat => (
+                      {[
+                        { id: 'Dicas', icon: <Lightbulb className="w-3 h-3" /> },
+                        { id: 'Network', icon: <Users className="w-3 h-3" /> },
+                        { id: 'Dúvidas', icon: <HelpCircle className="w-3 h-3" /> },
+                        { id: 'Conquistas', icon: <Trophy className="w-3 h-3" /> }
+                      ].map(cat => (
                         <button
-                          key={cat}
-                          onClick={() => setEditPostCategory(cat)}
-                          className={`px-3 py-1.5 md:px-4 md:py-2 rounded-full text-[10px] md:text-xs font-bold transition-all ${editPostCategory === cat
-                            ? 'bg-brand-yellow text-navy-950'
-                            : 'bg-white/5 text-white hover:bg-white/10'
+                          key={cat.id}
+                          onClick={() => setEditPostCategory(cat.id)}
+                          className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 border ${editPostCategory === cat.id
+                            ? 'bg-brand-yellow text-navy-950 border-brand-yellow shadow-lg shadow-brand-yellow/20'
+                            : 'bg-white/5 text-white/40 border-white/5 hover:bg-white/10 hover:text-white'
                             }`}
                         >
-                          {cat}
+                          {cat.icon}
+                          {cat.id}
                         </button>
                       ))}
                     </div>

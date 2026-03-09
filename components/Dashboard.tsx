@@ -2,11 +2,14 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   TrendingUp,
-  Crown
+  Crown,
+  Globe,
+  ArrowRight,
+  Sparkles
 } from 'lucide-react';
 import { UserGoal, UserProfile } from '../types';
 import { ContentProtection } from './ContentProtection';
-import { syncGoal, syncProfile } from '../lib/supabase';
+import { syncGoal, syncProfile, getGoal } from '../lib/supabase';
 // PremiumModal removido daqui (agora global no App.tsx)
 import { FinancialCard } from './FinancialCard';
 import { useToast } from '../context/ToastContext';
@@ -40,7 +43,21 @@ const Dashboard: React.FC = () => {
 
   const [isEditingGoal, setIsEditingGoal] = useState(false);
 
-  // Sincronização Goal
+  // Sync DOWN from Supabase when user loads
+  useEffect(() => {
+    const fetchUserGoal = async () => {
+      if (profile?.email) {
+        const savedGoal = await getGoal(profile.email);
+        if (savedGoal) {
+          setGoal(savedGoal);
+          localStorage.setItem('nomad_goal', JSON.stringify(savedGoal));
+        }
+      }
+    };
+    fetchUserGoal();
+  }, [profile?.email]);
+
+  // Sincronização Goal (Sync UP)
   useEffect(() => {
     localStorage.setItem('nomad_goal', JSON.stringify(goal));
   }, [goal]);
@@ -159,6 +176,49 @@ const Dashboard: React.FC = () => {
             </div>
           </ContentProtection>
         </motion.div>
+
+        {/* Vitrine Módulo de Espanhol */}
+        {/* <motion.div
+          variants={itemVariants}
+          className="relative group overflow-hidden rounded-[2.5rem] border border-brand-yellow/20 bg-gradient-to-br from-brand-yellow/10 to-transparent p-8 flex flex-col justify-between"
+        >
+          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+            <Globe className="w-32 h-32 -mr-8 -mt-8" />
+          </div>
+
+          <div className="relative space-y-4">
+            <div className="flex items-center gap-2 text-brand-yellow">
+              <Sparkles className="w-4 h-4" />
+              <span className="text-[10px] font-black uppercase tracking-widest">Novo Módulo</span>
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-2xl font-black text-white leading-tight">Módulo de Espanhol</h3>
+              <p className="text-sm text-blue-200/60 leading-relaxed max-w-[250px]">
+                Aulas ao vivo e gravadas focadas em imigração com a Prof. Ana Garcia.
+              </p>
+            </div>
+          </div>
+
+          <div className="relative pt-6">
+            {profile?.hasSpanishAccess ? (
+              <button
+                onClick={() => window.dispatchEvent(new CustomEvent('change-view', { detail: 'Spanish' }))}
+                className="flex items-center gap-2 text-white font-black text-xs uppercase tracking-widest hover:text-brand-yellow transition-colors"
+                id="dashboard-go-spanish"
+              >
+                Acessar minhas aulas <ArrowRight className="w-4 h-4" />
+              </button>
+            ) : (
+              <button
+                onClick={() => window.dispatchEvent(new CustomEvent('change-view', { detail: 'Spanish' }))}
+                className="w-full py-4 bg-brand-yellow text-navy-950 rounded-2xl font-black uppercase tracking-widest text-xs hover:scale-[1.02] transition-all shadow-xl shadow-brand-yellow/10"
+                id="dashboard-learn-spanish"
+              >
+                Saber Mais
+              </button>
+            )}
+          </div>
+        </motion.div> */}
       </div>
 
       <motion.div
@@ -172,7 +232,7 @@ const Dashboard: React.FC = () => {
         </div>
         <button
           onClick={() => {
-            document.dispatchEvent(new CustomEvent('change-view', { detail: 'Tasks' }));
+            window.dispatchEvent(new CustomEvent('change-view', { detail: 'Tasks' }));
           }}
           className="px-6 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-all uppercase tracking-widest"
         >

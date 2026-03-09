@@ -41,7 +41,7 @@ export const setOnDatabaseError = (callback: () => void) => {
 
 function handleSupabaseError(error: any, table: string) {
   // Códigos comuns de erro de schema: 42P01 (table missing), 42703 (column missing), 42501 (RLS permission)
-  if (error.code === '42P01' || error.code === '42703' || error.message?.includes('Could not find') || error.code === '42501') {
+  if (error.code === '42P01' || error.code === '42703' || error.message?.includes('Could not find')) {
     console.group(`⚠️ Supabase Schema Error (${table})`);
     console.error(error);
     console.warn('As tabelas necessárias não foram encontradas ou permissões RLS estão incorretas.');
@@ -118,6 +118,7 @@ export async function getUserProfile(userId: string) {
         avatarUrl: data.avatar_url || '',
         tier: data.tier || 'free',
         isAdmin: data.is_admin || false,
+        hasSpanishAccess: data.tier === 'anual' || data.tier === 'elite' || data.tier === 'pro',
         subscribedAt: data.subscribed_at,
         isOnboarded: true // Se existe no banco, já fez onboarding
       } as UserProfile;
@@ -215,9 +216,47 @@ export async function syncGoal(email: string, goal: any) {
   }
 }
 
+export async function getGoal(email: string) {
+  if (!email) return null;
+
+  try {
+    const userId = await ensureAuth();
+    if (!userId) return null;
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('target_amount, current_amount, monthly_required_income, currency')
+      .eq('email', email)
+      .eq('user_id', userId)
+      .single();
+
+    if (error) {
+      // If no goal set found, returns null without erroring aggressively
+      if (error.code !== 'PGRST116') {
+        handleSupabaseError(error, 'profiles (get goal)');
+      }
+      return null;
+    }
+
+    if (data) {
+      return {
+        targetAmount: data.target_amount || 0,
+        currentAmount: data.current_amount || 0,
+        monthlyRequiredIncome: data.monthly_required_income || 0,
+        currency: data.currency || '€'
+      };
+    }
+    return null;
+  } catch (err: any) {
+    handleSupabaseError(err, 'profiles (get goal)');
+    return null;
+  }
+}
+
 /**
  * Utilitário para salvar o checklist no Supabase
  */
+// ... (previous content)
 export async function syncChecklist(email: string, checklist: any[]) {
   if (!email || !checklist) return;
 
@@ -240,6 +279,41 @@ export async function syncChecklist(email: string, checklist: any[]) {
     }
   } catch (err: any) {
     handleSupabaseError(err, 'checklists');
+  }
+}
+
+
+export async function getChecklist(email: string) {
+  console.log('[Supabase.ts] getChecklist called for:', email);
+  if (!email) return [];
+
+  // FORCE FRESH SESSION CHECK
+  const userId = await ensureAuth();
+  console.log('[Supabase.ts] ensureAuth returned:', userId);
+
+  if (!userId) {
+    console.warn('[Supabase.ts] No user ID found for checklist retrieval.');
+    return [];
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('checklists')
+      .select('items')
+      .eq('email', email)
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (error) {
+      handleSupabaseError(error, 'checklists (get)');
+      return [];
+    }
+
+    console.log('[Supabase.ts] Checklist items found:', data?.items?.length || 0);
+    return data?.items || [];
+  } catch (err: any) {
+    handleSupabaseError(err, 'checklists (get)');
+    return [];
   }
 }
 
@@ -646,56 +720,153 @@ export async function saveQuizLeadInitial(lead: { name: string; email: string; p
   return data;
 }
 
-export async function updateQuizLeadFinal(id: string, result: string, score: number) {
-  const { data, error } = await supabase
-    .from('quiz_leads')
-    .update({
-      result,
-      score,
-      status: 'completed'
-    })
-    .eq('id', id)
-    .select()
-    .single();
+export async function updateQuizLeadFinal(id: string, result: string, score: number, answers?: any[]) {
+  try {
+    console.log('[Supabase] Calling RPC complete_quiz_lead_v3 for:', id, 'Result:', result);
 
-  if (error) {
-    handleSupabaseError(error, 'quiz_leads (update)');
+    const { data, error } = await supabase.rpc('complete_quiz_lead_v3', {
+      p_lead_id: id,
+      p_result: result,
+      p_score: score,
+      p_answers: answers || [],
+      p_remote_work: answers?.find((a: any) => a.id === 'remote_work')?.value || null,
+      p_income_source: answers?.find((a: any) => a.id === 'income_source')?.value || null,
+      p_job_tenure: answers?.find((a: any) => a.id === 'job_tenure')?.value || null,
+      p_company_age: answers?.find((a: any) => a.id === 'company_age')?.value || null,
+      p_family_config: answers?.find((a: any) => a.id === 'family_config')?.value || null,
+      p_kids_count: answers?.find((a: any) => a.id === 'kids_count')?.value || null,
+      p_salary: answers?.find((a: any) => a.id === 'salary')?.value || null,
+      p_income_proof: answers?.find((a: any) => a.id === 'income_proof')?.value || null,
+      p_qualification: answers?.find((a: any) => a.id === 'qualification')?.value || null,
+      p_criminal_record: answers?.find((a: any) => a.id === 'criminal_record')?.value || null,
+      p_time_spain: answers?.find((a: any) => a.id === 'time_spain')?.value || null
+    });
+
+    if (error) {
+      console.error('[Supabase] RPC V3 Error:', error);
+      handleSupabaseError(error, 'quiz_leads (rpc)');
+      // Fallback to regular update if RPC fails
+      const fallbackData = await fallbackUpdate(id, result, score, answers);
+      return fallbackData;
+    }
+
+    if (!data) {
+      console.warn('[Supabase] RPC V3 returned null (ID not found?)');
+      return null;
+    }
+
+    console.log('[Supabase] RPC V3 success:', data.id);
+    return data;
+  } catch (err: any) {
+    console.error('[Supabase] Critical RPC V3 Error:', err);
+    handleSupabaseError(err, 'quiz_leads (final)');
     return null;
   }
-  return data;
+}
+
+async function fallbackUpdate(id: string, result: string, score: number, answers?: any[]) {
+  const updateData: any = {
+    result,
+    score,
+    status: 'completed'
+  };
+
+  if (answers) {
+    updateData.answers = answers;
+    // Populate columns manually for fallback
+    updateData.remote_work = answers.find((a: any) => a.id === 'remote_work')?.value;
+    updateData.income_source = answers.find((a: any) => a.id === 'income_source')?.value;
+    updateData.job_tenure = answers.find((a: any) => a.id === 'job_tenure')?.value;
+    updateData.company_age = answers.find((a: any) => a.id === 'company_age')?.value;
+    updateData.family_config = answers.find((a: any) => a.id === 'family_config')?.value;
+    updateData.kids_count = answers.find((a: any) => a.id === 'kids_count')?.value;
+    updateData.salary = answers.find((a: any) => a.id === 'salary')?.value;
+    updateData.income_proof = answers.find((a: any) => a.id === 'income_proof')?.value;
+    updateData.qualification = answers.find((a: any) => a.id === 'qualification')?.value;
+    updateData.criminal_record = answers.find((a: any) => a.id === 'criminal_record')?.value;
+    updateData.time_spain = answers.find((a: any) => a.id === 'time_spain')?.value;
+  }
+
+  const { data, error } = await supabase
+    .from('quiz_leads')
+    .update(updateData)
+    .eq('id', id)
+    .select();
+
+  if (error) {
+    console.error('[Supabase] Fallback update error:', error);
+    handleSupabaseError(error, 'quiz_leads (fallback)');
+    return null;
+  }
+  return data?.[0] || null;
+}
+
+export async function updateQuizLeadProgress(id: string, answers: any[]) {
+  const { error } = await supabase
+    .from('quiz_leads')
+    .update({
+      answers: answers
+    })
+    .eq('id', id);
+
+  if (error) {
+    handleSupabaseError(error, 'quiz_leads (progress)');
+  }
 }
 
 export async function getQuizLeads() {
-  const { data, error } = await supabase
-    .from('quiz_leads')
-    .select('*')
-    .order('created_at', { ascending: false });
+  console.log('[Supabase] Fetching quiz leads...');
+  let allLeads: any[] = [];
+  let from = 0;
+  const step = 1000;
 
-  if (error) {
-    handleSupabaseError(error, 'quiz_leads (select)');
-    return [];
+  while (true) {
+    const { data, error } = await supabase
+      .from('quiz_leads')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .range(from, from + step - 1);
+
+    if (error) {
+      handleSupabaseError(error, 'quiz_leads (select)');
+      break;
+    }
+
+    if (!data || data.length === 0) break;
+    allLeads = [...allLeads, ...data];
+    if (data.length < step) break;
+    from += step;
+
+    // Safety break to avoid infinite loop if something goes wrong
+    if (allLeads.length > 10000) break;
   }
-  return data;
+
+  console.log('[Supabase] Total leads fetched:', allLeads.length);
+  return allLeads;
 }
 
 export async function getQuizStats() {
-  const { data: allLeads, error } = await supabase
-    .from('quiz_leads')
-    .select('status, result');
+  const [allRes, compRes, aRes, bRes, cRes] = await Promise.all([
+    supabase.from('quiz_leads').select('id', { count: 'exact', head: true }),
+    supabase.from('quiz_leads').select('id', { count: 'exact', head: true }).eq('status', 'completed'),
+    supabase.from('quiz_leads').select('id', { count: 'exact', head: true }).eq('result', 'A'),
+    supabase.from('quiz_leads').select('id', { count: 'exact', head: true }).eq('result', 'B'),
+    supabase.from('quiz_leads').select('id', { count: 'exact', head: true }).eq('result', 'C'),
+  ]);
 
-  if (error) {
-    handleSupabaseError(error, 'quiz_leads (stats)');
+  if (allRes.error) {
+    handleSupabaseError(allRes.error, 'quiz_leads (stats)');
     return null;
   }
 
-  const started = allLeads.length;
-  const completed = allLeads.filter(l => l.status === 'completed').length;
+  const started = allRes.count || 0;
+  const completed = compRes.count || 0;
   const conversionRate = started > 0 ? (completed / started) * 100 : 0;
 
   const results = {
-    A: allLeads.filter(l => l.result === 'A').length,
-    B: allLeads.filter(l => l.result === 'B').length,
-    C: allLeads.filter(l => l.result === 'C').length,
+    A: aRes.count || 0,
+    B: bRes.count || 0,
+    C: cRes.count || 0,
   };
 
   return { started, completed, conversionRate, results };

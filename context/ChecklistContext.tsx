@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
 import { ChecklistItem } from '../types';
 import { INITIAL_CHECKLIST } from '../constants';
-import { syncChecklist } from '../lib/supabase';
+import { syncChecklist, getChecklist } from '../lib/supabase'; // Updated import
 import { useToast } from './ToastContext';
 
 interface ChecklistContextType {
@@ -15,31 +15,52 @@ interface ChecklistContextType {
 
 const ChecklistContext = createContext<ChecklistContextType | undefined>(undefined);
 
-export const ChecklistProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const ChecklistProvider: React.FC<{ children: ReactNode; userEmail?: string }> = ({ children, userEmail }) => {
     const { showToast } = useToast();
     const [checklist, setChecklist] = useState<ChecklistItem[]>(() => {
         const saved = localStorage.getItem('nomad_checklist');
         return saved ? JSON.parse(saved) : INITIAL_CHECKLIST;
     });
 
-    const [userEmail, setUserEmail] = useState<string | null>(null);
+    const [isLoaded, setIsLoaded] = useState(false);
 
-    // Load user profile to get email for sync
+    // Sync DOWN from Supabase when user changes
     useEffect(() => {
-        const savedProfile = localStorage.getItem('nomad_profile');
-        if (savedProfile) {
-            const profile = JSON.parse(savedProfile);
-            if (profile.email) setUserEmail(profile.email);
-        }
-    }, []);
+        console.log('[ChecklistContext] User changed:', userEmail);
+        setIsLoaded(false); // Validating state reset to prevent sync of stale data
 
-    // Sync with localStorage and Supabase
-    useEffect(() => {
-        localStorage.setItem('nomad_checklist', JSON.stringify(checklist));
         if (userEmail) {
+            getChecklist(userEmail).then(items => {
+                console.log('[ChecklistContext] Loaded items:', items?.length);
+                if (items && items.length > 0) {
+                    setChecklist(items);
+                    localStorage.setItem('nomad_checklist', JSON.stringify(items));
+                } else {
+                    console.log('[ChecklistContext] No items found, processing fresh start.');
+                    // Start fresh if nothing in DB - DEEP COPY to avoid mutations
+                    setChecklist(JSON.parse(JSON.stringify(INITIAL_CHECKLIST)));
+                }
+                setIsLoaded(true);
+            });
+        } else {
+            console.log('[ChecklistContext] User logged out, cleaning up.');
+            // User logged out - Reset to Initial state - DEEP COPY
+            setChecklist(JSON.parse(JSON.stringify(INITIAL_CHECKLIST)));
+            localStorage.removeItem('nomad_checklist');
+            // We don't need to sync while logged out, so isLoaded can be whatever, 
+            // but false prevents the sync effect from running.
+            setIsLoaded(false);
+        }
+    }, [userEmail]);
+
+    // Sync UP to Supabase on change (only if loaded and user exists)
+    useEffect(() => {
+        if (isLoaded && userEmail) {
+            localStorage.setItem('nomad_checklist', JSON.stringify(checklist));
             syncChecklist(userEmail, checklist);
         }
-    }, [checklist, userEmail]);
+    }, [checklist, userEmail, isLoaded]);
+
 
     const addItem = (newItem: Omit<ChecklistItem, 'id' | 'isCompleted' | 'isTranslated' | 'isApostilled' | 'needsTranslation' | 'needsApostille'>) => {
         const item: ChecklistItem = {
