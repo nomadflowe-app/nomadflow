@@ -722,9 +722,8 @@ export async function saveQuizLeadInitial(lead: { name: string; email: string; p
 
 export async function updateQuizLeadFinal(id: string, result: string, score: number, answers?: any[]) {
   try {
-    console.log('[Supabase] Calling RPC complete_quiz_lead_v3 for:', id, 'Result:', result);
-
-    const { data, error } = await supabase.rpc('complete_quiz_lead_v3', {
+    console.log('[Supabase] Calling RPC complete_quiz_lead_v4 for:', id, 'Result:', result);
+    const { data, error } = await supabase.rpc('complete_quiz_lead_v4', {
       p_lead_id: id,
       p_result: result,
       p_score: score,
@@ -791,14 +790,15 @@ async function fallbackUpdate(id: string, result: string, score: number, answers
     .from('quiz_leads')
     .update(updateData)
     .eq('id', id)
-    .select();
+    .select()
+    .maybeSingle();
 
   if (error) {
     console.error('[Supabase] Fallback update error:', error);
-    handleSupabaseError(error, 'quiz_leads (fallback)');
+    // If it's an RLS error, we can't do much from here, but logging helps debug
     return null;
   }
-  return data?.[0] || null;
+  return data || null;
 }
 
 export async function updateQuizLeadProgress(id: string, answers: any[]) {

@@ -146,17 +146,6 @@ create table if not exists public.quiz_leads (
     updated_at timestamp with time zone default now()
 );
 
--- Garantir colunas de respostas específicas no quiz_leads
-alter table public.quiz_leads add column if not exists remote_work text;
-alter table public.quiz_leads add column if not exists income_source text;
-alter table public.quiz_leads add column if not exists job_tenure text;
-alter table public.quiz_leads add column if not exists company_age text;
-alter table public.quiz_leads add column if not exists family_config text;
-alter table public.quiz_leads add column if not exists kids_count text;
-alter table public.quiz_leads add column if not exists salary text;
-alter table public.quiz_leads add column if not exists income_proof text;
-alter table public.quiz_leads add column if not exists qualification text;
-alter table public.quiz_leads add column if not exists criminal_record text;
 alter table public.quiz_leads add column if not exists updated_at timestamp with time zone default now();
 alter table public.quiz_leads add column if not exists answers jsonb;
 
@@ -239,20 +228,22 @@ create policy "Admins can manage notifications" on public.notifications for all 
     exists (select 1 from public.profiles where user_id = auth.uid() and is_admin = true)
 );
 
--- QUIZ LEADS Policies
+-- QUIZ LEADS Policies (Resets)
 drop policy if exists "quiz_leads_insert" on public.quiz_leads;
 drop policy if exists "quiz_leads_select" on public.quiz_leads;
 drop policy if exists "quiz_leads_update" on public.quiz_leads;
 drop policy if exists "Enable insert for all" on public.quiz_leads;
 drop policy if exists "Enable read access for all" on public.quiz_leads;
 drop policy if exists "Enable update for owners" on public.quiz_leads;
+drop policy if exists "Enable update for all" on public.quiz_leads;
 
-create policy "quiz_leads_insert" on public.quiz_leads for insert with check (true);
-create policy "quiz_leads_select" on public.quiz_leads for select using (true);
-create policy "quiz_leads_update" on public.quiz_leads for update using (true);
+-- Novas Políticas (Permissivas para Quiz)
+create policy "quiz_leads_insert_v4" on public.quiz_leads for insert with check (true);
+create policy "quiz_leads_select_v4" on public.quiz_leads for select using (true);
+create policy "quiz_leads_update_v4" on public.quiz_leads for update using (true) with check (true);
 
--- 3. Security Definer Function (Guaranteed Save)
-create or replace function public.complete_quiz_lead_v3(
+-- 3. Security Definer Function (Guaranteed Save V4)
+create or replace function public.complete_quiz_lead_v4(
   p_lead_id uuid,
   p_result text,
   p_score integer,
@@ -282,6 +273,7 @@ begin
     score = p_score,
     answers = p_answers,
     status = 'completed',
+    updated_at = now(),
     remote_work = coalesce(p_remote_work, remote_work),
     income_source = coalesce(p_income_source, income_source),
     job_tenure = coalesce(p_job_tenure, job_tenure),
@@ -300,7 +292,7 @@ begin
 end;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.complete_quiz_lead_v3 TO anon, authenticated, postgres, service_role;
+GRANT EXECUTE ON FUNCTION public.complete_quiz_lead_v4 TO anon, authenticated, postgres, service_role;
 GRANT ALL ON TABLE public.quiz_leads TO anon, authenticated, postgres, service_role;
 
 -- Garantir que anon pode fazer UPDATE (necessário para o fallback do quiz)
