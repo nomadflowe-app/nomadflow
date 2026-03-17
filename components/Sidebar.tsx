@@ -24,8 +24,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, setActiveView, isAdmin, p
     const menuItems = [
         { id: 'Dashboard', label: 'Home', icon: LayoutDashboard },
         { id: 'Tasks', label: 'Tarefas', icon: ListTodo },
-        { id: 'Guides', label: 'News', icon: Newspaper },
         { id: 'Members', label: 'Hub Elite', icon: Crown },
+        { id: 'Guides', label: 'News', icon: Newspaper },
         // { id: 'Spanish', label: 'Espanhol', icon: Globe },
         { id: 'Partners', label: 'Parceiros', icon: Handshake },
     ];
