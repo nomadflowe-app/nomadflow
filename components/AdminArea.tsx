@@ -136,7 +136,7 @@ export const AdminArea: React.FC = () => {
           - https://youtu.be/VIDEO_ID
           - VIDEO_ID (fallback)
         */
-        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
         const match = url.match(regExp);
 
         return (match && match[2].length === 11) ? match[2] : url;
@@ -218,6 +218,7 @@ export const AdminArea: React.FC = () => {
                 duration: item.duration,
                 thumbnail: item.thumbnail,
                 video_url: item.youtube_id, // Mapeia do banco para o form
+                playlist: item.playlist || 'Geral',
                 is_dripped: item.is_dripped || false
             });
         } else if (activeTab === 'Parceiros') {
@@ -294,6 +295,7 @@ export const AdminArea: React.FC = () => {
                         duration: formData.duration,
                         thumbnail: formData.thumbnail,
                         video_url: videoId,
+                        playlist: formData.playlist,
                         isDripped: formData.is_dripped
                     });
                     success = !!result;
@@ -315,7 +317,7 @@ export const AdminArea: React.FC = () => {
                     showToast('Atualizado com sucesso!', 'success');
                     setIsCreating(false);
                     setEditingId(null); // Limpa o estado de edição
-                    setFormData({ title: '', category: '', excerpt: '', content: '', thumbnail: '', read_time: '5 min', is_premium: false, instructor: '', duration: '', video_url: '', whatsapp: '', site_url: '', discount_code: '', is_exclusive: false });
+                    setFormData({ title: '', category: '', excerpt: '', content: '', thumbnail: '', read_time: '5 min', is_premium: false, instructor: '', duration: '', video_url: '', playlist: '', whatsapp: '', site_url: '', discount_code: '', is_exclusive: false });
                     loadData();
                 } else {
                     showToast('Erro ao atualizar.', 'error');
@@ -343,6 +345,7 @@ export const AdminArea: React.FC = () => {
                     duration: formData.duration || '10 min',
                     thumbnail: formData.thumbnail || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=800',
                     video_url: videoId,
+                    playlist: formData.playlist || 'Geral',
                     isDripped: formData.is_dripped
                 });
                 success = !!result;
@@ -363,7 +366,7 @@ export const AdminArea: React.FC = () => {
             if (success) {
                 showToast('Criado com sucesso!', 'success');
                 setIsCreating(false);
-                setFormData({ title: '', category: '', excerpt: '', content: '', thumbnail: '', read_time: '5 min', is_premium: false, instructor: '', duration: '', video_url: '', whatsapp: '', site_url: '', discount_code: '', is_exclusive: false });
+                setFormData({ title: '', category: '', excerpt: '', content: '', thumbnail: '', read_time: '5 min', is_premium: false, instructor: '', duration: '', video_url: '', playlist: '', whatsapp: '', site_url: '', discount_code: '', is_exclusive: false });
                 loadData();
             } else {
                 showToast('Erro ao criar. Verifique sua conexão ou se você tem permissão de admin.', 'error');
@@ -389,7 +392,7 @@ export const AdminArea: React.FC = () => {
                             <button
                                 onClick={() => {
                                     setEditingId(null);
-                                    setFormData({ title: '', category: '', excerpt: '', content: '', thumbnail: '', read_time: '5 min', is_premium: false, instructor: '', duration: '', video_url: '', whatsapp: '', site_url: '', discount_code: '', is_exclusive: false });
+                                    setFormData({ title: '', category: '', excerpt: '', content: '', thumbnail: '', read_time: '5 min', is_premium: false, instructor: '', duration: '', video_url: '', playlist: '', whatsapp: '', site_url: '', discount_code: '', is_exclusive: false });
                                     setIsCreating(true);
                                 }}
                                 className="p-3 bg-brand-yellow rounded-2xl text-navy-950 hover:bg-white transition-all shadow-lg active:scale-90"
@@ -556,8 +559,8 @@ export const AdminArea: React.FC = () => {
                                                     </span>
                                                     {item.result && (
                                                         <span className={`text-sm font-black uppercase tracking-tighter px-3 py-2 rounded-xl text-center border shadow-lg ${item.result === 'A' ? 'bg-green-400 text-navy-950 border-green-400' :
-                                                                item.result === 'B' ? 'bg-amber-400 text-navy-950 border-amber-400' :
-                                                                    'bg-red-500 text-white border-red-500'
+                                                            item.result === 'B' ? 'bg-amber-400 text-navy-950 border-amber-400' :
+                                                                'bg-red-500 text-white border-red-500'
                                                             }`}>
                                                             Result: {item.result}
                                                         </span>
@@ -868,6 +871,16 @@ export const AdminArea: React.FC = () => {
                                                     placeholder="Ex: https://youtu.be/..."
                                                     value={formData.video_url}
                                                     onChange={e => setFormData({ ...formData, video_url: e.target.value })}
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest pl-2">Pasta / Módulo (Playlist)</label>
+                                                <input
+                                                    type="text"
+                                                    className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-white font-bold focus:outline-none focus:border-brand-yellow transition-all"
+                                                    placeholder="Ex: Módulo 1 - Preparação..."
+                                                    value={formData.playlist || ''}
+                                                    onChange={e => setFormData({ ...formData, playlist: e.target.value })}
                                                 />
                                             </div>
                                             <div className="flex items-center gap-3 px-2">

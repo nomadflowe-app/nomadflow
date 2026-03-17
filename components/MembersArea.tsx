@@ -57,6 +57,7 @@ interface Tutorial {
   youtubeId: string;
   category: string;
   description?: string;
+  playlist: string;
 }
 
 // --- 1. CONTEÚDO ISOLADO: GUIA DO VISTO ---
@@ -137,7 +138,8 @@ const MembersArea: React.FC = () => {
         thumbnail: t.thumbnail,
         youtubeId: t.youtube_id, // Fix: Map snake_case to camelCase
         category: 'Geral', // Default or fetch if exists
-        description: t.description
+        description: t.description,
+        playlist: t.playlist || 'Geral'
       }));
       setTutorials(mappedTutorials);
       setLoading(false);
@@ -381,23 +383,27 @@ const MembersArea: React.FC = () => {
               )}
 
               {activeTab === 'Tutoriais' && (
-                <motion.div key="tutorials" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
-                  <div className="flex items-center gap-3 px-2">
-                    <div className="w-1.5 h-6 bg-white rounded-full" />
-                    <h2 className="text-sm font-black text-navy-50 uppercase tracking-[0.2em]">Workshops de Preenchimento</h2>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 auto-rows-fr">
-                    {tutorials.map(tutorial => (
-                      <WorkshopCard
-                        key={tutorial.id}
-                        title={tutorial.title}
-                        instructor={tutorial.instructor}
-                        duration={tutorial.duration}
-                        image={tutorial.thumbnail}
-                        onClick={getDrippingDays(tutorial.is_dripped) ? undefined : () => setActiveVideo(tutorial)}
-                      />
-                    ))}
-                  </div>
+                <motion.div key="tutorials" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-12">
+                  {Array.from(new Set(tutorials.map(t => t.playlist || 'Geral'))).map(playlist => (
+                    <div key={playlist} className="space-y-6">
+                      <div className="flex items-center gap-3 px-2">
+                        <div className="w-1.5 h-6 bg-brand-yellow rounded-full" />
+                        <h2 className="text-sm font-black text-navy-50 uppercase tracking-[0.2em]">{playlist}</h2>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 auto-rows-fr">
+                        {tutorials.filter(t => (t.playlist || 'Geral') === playlist).map(tutorial => (
+                          <WorkshopCard
+                            key={tutorial.id}
+                            title={tutorial.title}
+                            instructor={tutorial.instructor}
+                            duration={tutorial.duration}
+                            image={tutorial.thumbnail}
+                            onClick={getDrippingDays(tutorial.is_dripped) ? undefined : () => setActiveVideo(tutorial)}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
                 </motion.div>
               )}
 
@@ -534,11 +540,11 @@ const MembersArea: React.FC = () => {
                       <X className="w-6 h-6" />
                     </button>
                     {(() => {
-                      const rawId = activeVideo.youtube_id || '';
+                      const rawId = activeVideo.youtubeId || activeVideo.youtube_id || '';
                       let tempId = rawId;
                       try {
                         if (rawId.includes('http') || rawId.includes('youtube') || rawId.includes('youtu.be')) {
-                          const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+                          const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
                           const match = rawId.match(regExp);
                           if (match && match[2].length === 11) {
                             tempId = match[2];
@@ -546,15 +552,18 @@ const MembersArea: React.FC = () => {
                         }
                       } catch (e) { console.warn('Error parsing video ID', e); }
 
+                      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+
                       return (
                         <iframe
                           width="100%"
                           height="100%"
-                          src={`https://www.youtube.com/embed/${tempId}?autoplay=1&modestbranding=1&rel=0&iv_load_policy=3&controls=1&showinfo=0`}
+                          src={`https://www.youtube.com/embed/${tempId}?autoplay=1&mute=1&modestbranding=1&rel=0&iv_load_policy=3&controls=1&showinfo=0&origin=${encodeURIComponent(origin)}`}
                           title={activeVideo.title}
                           frameBorder="0"
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                           allowFullScreen
+                          referrerPolicy="strict-origin-when-cross-origin"
                         ></iframe>
                       );
                     })()}
