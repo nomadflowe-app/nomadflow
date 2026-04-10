@@ -124,6 +124,14 @@ serve(async (req: Request) => {
                 name: name,
                 email: email
             },
+            payment_methods: {
+                excluded_payment_types: [
+                    { id: "ticket" } // Exclui pagamentos por boleto e lotéricas
+                ],
+                excluded_payment_methods: [
+                    { id: "pec" } // Tenta excluir especificamente o débito virtual da Caixa
+                ]
+            },
             external_reference: booking.id,
             back_urls: {
                 success: `${APP_URL}/agendamento/sucesso?booking_id=${booking.id}&status=approved`,
