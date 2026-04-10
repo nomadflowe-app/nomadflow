@@ -21,7 +21,7 @@ import { supabase } from '../lib/supabase';
 import { useToast } from '../context/ToastContext';
 
 // Set to true while using MP test credentials, false in production
-const MP_SANDBOX = import.meta.env.VITE_MP_SANDBOX !== 'false';
+const MP_SANDBOX = import.meta.env.VITE_MP_SANDBOX === 'true';
 
 
 interface Slot {
