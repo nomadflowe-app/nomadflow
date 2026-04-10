@@ -275,19 +275,8 @@ const MembersArea: React.FC = () => {
                 <p className="text-white/60 font-medium italic">Acesso exclusivo para membros.</p>
               </div>
             </div>
-            {isPremiumUser && (
-              <a
-                href="https://wa.me/5594984342484"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-2xl text-green-400 hover:bg-green-500 hover:text-white transition-all shadow-lg"
-              >
-                <MessageCircle className="w-4 h-4" />
-                <span className="text-[10px] font-black uppercase tracking-widest">Suporte VIP</span>
-              </a>
-            )}
           </div>
-
+ 
           <div className="flex p-1 bg-white/5 rounded-2xl border border-white/10 relative overflow-hidden">
             {(['Guias', 'Tutoriais', 'Comunidade'] as Tab[]).map((tab) => (
               <button

@@ -19,10 +19,10 @@ export type Question = {
 };
 
 // Dados de cálculo de renda (SMI 2026)
-export const BASE_SMI = 1221;
-export const BASE_HOLDER = 2442; // 200% SMI
-export const ADD_SPOUSE = 916;  // 75% SMI
-export const ADD_CHILD = 305;    // 25% SMI
+export const BASE_SMI = 1424;
+export const BASE_HOLDER = 2848; // 200% SMI
+export const ADD_SPOUSE = 1068;  // 75% SMI
+export const ADD_CHILD = 356;    // 25% SMI
 export const EUR_BRL_RATE = 6.2; // Taxa de conversão estimada
 
 export const calculateRequiredIncome = (answers: Answer[]) => {

@@ -43,7 +43,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete, initialEmail }) => 
 
   useEffect(() => {
     if (step === 4) {
-      const baseSMI = 1221;
+      const baseSMI = 1424;
       let monthlyIncome = baseSMI * 2.0;
 
       if (data.familyContext === 'couple') {

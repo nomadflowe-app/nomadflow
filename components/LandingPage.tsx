@@ -462,18 +462,26 @@ const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth }) => {
           </div>
 
           <div className="mt-16 text-center space-y-6 bg-white/5 p-8 rounded-3xl border border-white/10">
-            <p className="text-lg font-medium text-white">Ainda com dúvidas se o NomadFlow é para você?</p>
-            <p className="text-sm text-white/60">Nosso time está online para te ajudar a entender como a plataforma pode acelerar sua jornada.</p>
-            <a
-              href="https://wa.me/5591996016361"
-              target="_blank"
+            <div className="flex justify-center -space-x-4">
+              {[1, 2, 3].map(i => (
+                <img key={i} src={`https://picsum.photos/seed/${i + 10}/100`} className="w-12 h-12 rounded-full border-4 border-navy-950 object-cover" alt="User" />
+              ))}
+            </div>
+            <div className="space-y-2">
+              <h4 className="text-xl font-bold text-white">Ainda tem dúvidas?</h4>
+              <p className="text-blue-100/60 font-medium">Nossa equipe está pronta para te ajudar agora mesmo.</p>
+            </div>
+            <a 
+              href="https://wa.me/5594984342484" 
+              target="_blank" 
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-[#25D366] text-white rounded-xl font-bold uppercase tracking-widest hover:bg-[#128C7E] transition-colors shadow-lg shadow-green-900/20"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-green-500 hover:bg-green-600 text-white font-black uppercase tracking-widest rounded-2xl transition-all shadow-xl shadow-green-900/20 active:scale-95 group"
             >
-              <MessageCircle className="w-5 h-5" />
-              Falar com Suporte no WhatsApp
+              <MessageCircle className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+              Falar no WhatsApp
             </a>
           </div>
+
         </div>
       </section>
 

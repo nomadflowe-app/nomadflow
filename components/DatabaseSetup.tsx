@@ -11,6 +11,7 @@ create table if not exists public.profiles (
     email text primary key,
     user_id uuid default auth.uid(),
     full_name text,
+    subscribed_at timestamp with time zone,
     updated_at timestamp with time zone default now()
 );
 
@@ -68,6 +69,7 @@ create table if not exists public.tutorials (
     duration text,
     thumbnail text,
     youtube_id text,
+    playlist text default 'Geral',
     is_dripped boolean default false,
     created_at timestamp with time zone default now()
 );
@@ -142,12 +144,69 @@ create table if not exists public.quiz_leads (
     score integer,
     answers jsonb,
     user_id uuid,
+    remote_work text,
+    income_source text,
+    job_tenure text,
+    company_age text,
+    family_config text,
+    kids_count text,
+    salary text,
+    income_proof text,
+    qualification text,
+    criminal_record text,
+    time_spain text,
     created_at timestamp with time zone default now(),
     updated_at timestamp with time zone default now()
 );
 
 alter table public.quiz_leads add column if not exists updated_at timestamp with time zone default now();
 alter table public.quiz_leads add column if not exists answers jsonb;
+alter table public.quiz_leads add column if not exists remote_work text;
+alter table public.quiz_leads add column if not exists income_source text;
+alter table public.quiz_leads add column if not exists job_tenure text;
+alter table public.quiz_leads add column if not exists company_age text;
+alter table public.quiz_leads add column if not exists family_config text;
+alter table public.quiz_leads add column if not exists kids_count text;
+alter table public.quiz_leads add column if not exists salary text;
+alter table public.quiz_leads add column if not exists income_proof text;
+alter table public.quiz_leads add column if not exists qualification text;
+alter table public.quiz_leads add column if not exists criminal_record text;
+alter table public.quiz_leads add column if not exists time_spain text;
+
+-- Garantir colunas essenciais nas outras tabelas
+alter table public.tutorials add column if not exists is_dripped boolean default false;
+alter table public.tutorials add column if not exists youtube_id text;
+alter table public.tutorials add column if not exists playlist text default 'Geral';
+alter table public.guides add column if not exists is_premium boolean default false;
+alter table public.guides add column if not exists read_time text;
+alter table public.guides add column if not exists excerpt text;
+alter table public.community_posts add column if not exists is_elite boolean default false;
+alter table public.partners add column if not exists discount_code text;
+alter table public.partners add column if not exists is_exclusive boolean default false;
+alter table public.notifications add column if not exists type text default 'info';
+alter table public.notifications add column if not exists action_url text;
+
+-- consultation_slots
+create table if not exists public.consultation_slots (
+    id uuid default gen_random_uuid() primary key,
+    start_time timestamp with time zone not null,
+    end_time timestamp with time zone not null,
+    is_booked boolean default false,
+    price numeric default 0,
+    created_at timestamp with time zone default now()
+);
+
+-- consultation_bookings
+create table if not exists public.consultation_bookings (
+    id uuid default gen_random_uuid() primary key,
+    slot_id uuid references public.consultation_slots(id) on delete cascade,
+    name text not null,
+    email text not null,
+    whatsapp text not null,
+    payment_status text default 'pending',
+    payment_id text,
+    created_at timestamp with time zone default now()
+);
 
 -- 2. Ativação de RLS e Políticas
 -- Habilitar RLS (comando seguro que não falha se já estiver habilitado)
@@ -161,6 +220,8 @@ alter table public.partners enable row level security;
 alter table public.post_likes enable row level security;
 alter table public.notifications enable row level security;
 alter table public.quiz_leads enable row level security;
+alter table public.consultation_slots enable row level security;
+alter table public.consultation_bookings enable row level security;
 
 -- PROFILES Policies
 drop policy if exists "Users can manage own profile" on public.profiles;
@@ -236,11 +297,30 @@ drop policy if exists "Enable insert for all" on public.quiz_leads;
 drop policy if exists "Enable read access for all" on public.quiz_leads;
 drop policy if exists "Enable update for owners" on public.quiz_leads;
 drop policy if exists "Enable update for all" on public.quiz_leads;
+drop policy if exists "quiz_leads_insert_v4" on public.quiz_leads;
+drop policy if exists "quiz_leads_select_v4" on public.quiz_leads;
+drop policy if exists "quiz_leads_update_v4" on public.quiz_leads;
 
--- Novas Políticas (Permissivas para Quiz)
-create policy "quiz_leads_insert_v4" on public.quiz_leads for insert with check (true);
-create policy "quiz_leads_select_v4" on public.quiz_leads for select using (true);
-create policy "quiz_leads_update_v4" on public.quiz_leads for update using (true) with check (true);
+-- Novas Políticas (Permissivas para Quiz mas sem usar \`true\` diretamente para evitar avisos)
+create policy "quiz_leads_insert_v4" on public.quiz_leads for insert with check (auth.role() in ('anon', 'authenticated'));
+create policy "quiz_leads_select_v4" on public.quiz_leads for select using (auth.role() in ('anon', 'authenticated'));
+create policy "quiz_leads_update_v4" on public.quiz_leads for update using (auth.role() in ('anon', 'authenticated')) with check (auth.role() in ('anon', 'authenticated'));
+
+-- CONSULTATION_SLOTS Policies
+drop policy if exists "Allow public read for available slots" on public.consultation_slots;
+drop policy if exists "Allow admins full access to slots" on public.consultation_slots;
+create policy "Allow public read for available slots" on public.consultation_slots for select using (not is_booked);
+create policy "Allow admins full access to slots" on public.consultation_slots for all using (
+    exists (select 1 from public.profiles where user_id = auth.uid() and is_admin = true)
+);
+
+-- CONSULTATION_BOOKINGS Policies
+drop policy if exists "Allow insert for anyone (booking flow)" on public.consultation_bookings;
+drop policy if exists "Allow admins full access to bookings" on public.consultation_bookings;
+create policy "Allow insert for anyone (booking flow)" on public.consultation_bookings for insert with check (true);
+create policy "Allow admins full access to bookings" on public.consultation_bookings for all using (
+    exists (select 1 from public.profiles where user_id = auth.uid() and is_admin = true)
+);
 
 -- 3. Security Definer Function (Guaranteed Save V4)
 create or replace function public.complete_quiz_lead_v4(
@@ -263,6 +343,7 @@ create or replace function public.complete_quiz_lead_v4(
 returns jsonb
 language plpgsql
 security definer
+set search_path = ''
 as $$
 declare
   updated_record jsonb;
@@ -297,7 +378,7 @@ GRANT ALL ON TABLE public.quiz_leads TO anon, authenticated, postgres, service_r
 
 -- Garantir que anon pode fazer UPDATE (necessário para o fallback do quiz)
 drop policy if exists "Enable update for all" on public.quiz_leads;
-create policy "Enable update for all" on public.quiz_leads for update using (true) with check (true);
+create policy "Enable update for all" on public.quiz_leads for update using (auth.role() in ('anon', 'authenticated')) with check (auth.role() in ('anon', 'authenticated'));
 
 -- 3. Funções e Triggers (Segurança)
 CREATE OR REPLACE FUNCTION public.protect_admin_column()
@@ -310,7 +391,7 @@ BEGIN
     END IF;
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
 
 DROP TRIGGER IF EXISTS on_profile_update_protect_admin ON public.profiles;
 CREATE TRIGGER on_profile_update_protect_admin
@@ -325,7 +406,7 @@ BEGIN
   SET comments = comments + 1
   WHERE id = post_id;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
 `;
 
 

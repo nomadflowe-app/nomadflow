@@ -10,7 +10,10 @@ import {
     Plus,
     X,
     Lock,
-    Crown
+    Crown,
+    Check,
+    Languages,
+    Building2
 } from 'lucide-react';
 import { Category, UserProfile } from '../types';
 import { ChecklistItemCard } from './ChecklistItemCard';
@@ -18,6 +21,12 @@ import { useChecklist } from '../context/ChecklistContext';
 // PremiumModal removido (agora global)
 import { ContentProtection } from './ContentProtection';
 import { useToast } from '../context/ToastContext';
+import { ChecklistItem } from '../types';
+
+const BASE_SMI = 1424;
+const BASE_HOLDER = 2848; // 200% SMI
+const ADD_SPOUSE = 1068;  // 75% SMI
+const ADD_CHILD = 356;    // 25% SMI
 
 const Tasks: React.FC = () => {
     const { checklist, toggleDoc, addItem, deleteItem } = useChecklist();
@@ -90,6 +99,27 @@ const Tasks: React.FC = () => {
         setNewTaskTitle('');
         setNewTaskDesc('');
         setIsAdding(false);
+    };
+
+    const getDynamicIncomeItem = (item: ChecklistItem): ChecklistItem => {
+        if (item.id === '2') { // Prova de Renda
+            let required = BASE_HOLDER;
+            const isCoupleOrFamily = profile?.familyContext === 'couple' || profile?.familyContext === 'family';
+
+            if (isCoupleOrFamily) {
+                required += ADD_SPOUSE;
+            }
+            if (profile?.familyContext === 'family' && profile.childrenCount) {
+                required += (profile.childrenCount * ADD_CHILD);
+            }
+
+            return {
+                ...item,
+                title: `Prova de Renda (Min. ${required}€)`,
+                description: `Extratos ou holerites provando a renda mensal exigida para sua configuração familiar.`
+            };
+        }
+        return item;
     };
 
     return (
@@ -202,6 +232,7 @@ const Tasks: React.FC = () => {
                                     onChange={e => setNewTaskDesc(e.target.value)}
                                     className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white placeholder-white/30 focus:outline-none focus:border-brand-yellow"
                                 />
+
                                 <button type="submit" className="w-full bg-brand-yellow text-brand-dark font-black uppercase tracking-widest py-3 rounded-xl hover:bg-white transition-all">
                                     Adicionar
                                 </button>
@@ -222,6 +253,7 @@ const Tasks: React.FC = () => {
                             }
                             return false;
                         })
+                        .map(getDynamicIncomeItem)
                         .map(item => (
                             <motion.div
                                 layout
@@ -243,11 +275,13 @@ const Tasks: React.FC = () => {
             </motion.div>
 
             {/* Premium Overlay for locked Visto checklist */}
-            {activeGroup === 'Visto' && !isPremiumUser && (
-                <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} className="mt-[-100px] relative z-20">
-                    <ContentProtection isPremium={false} />
-                </motion.div>
-            )}
+            {
+                activeGroup === 'Visto' && !isPremiumUser && (
+                    <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} className="mt-[-100px] relative z-20">
+                        <ContentProtection isPremium={false} />
+                    </motion.div>
+                )
+            }
 
             {/* Premium Modal removido (agora global no App.tsx) */}
 
@@ -281,7 +315,7 @@ const Tasks: React.FC = () => {
                     </div>
                 )}
             </AnimatePresence>
-        </motion.div>
+        </motion.div >
     );
 };
 

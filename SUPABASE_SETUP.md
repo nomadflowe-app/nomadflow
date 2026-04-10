@@ -157,9 +157,9 @@ drop policy if exists "Enable insert for all" on public.quiz_leads;
 drop policy if exists "Enable read access for all" on public.quiz_leads;
 drop policy if exists "Enable update for owners" on public.quiz_leads;
 
-create policy "Enable insert for all" on public.quiz_leads for insert with check (true);
-create policy "Enable read access for all" on public.quiz_leads for select using (true);
-create policy "Enable update for owners" on public.quiz_leads for update using (true);
+create policy "Enable insert for all" on public.quiz_leads for insert with check (auth.role() in ('anon', 'authenticated'));
+create policy "Enable read access for all" on public.quiz_leads for select using (auth.role() in ('anon', 'authenticated'));
+create policy "Enable update for owners" on public.quiz_leads for update using (auth.role() in ('anon', 'authenticated'));
 
 -- COLUNAS EXTRAS (CRITICAL FIX)
 alter table public.quiz_leads add column if not exists criminal_record text;
@@ -186,6 +186,7 @@ create or replace function public.complete_quiz_lead_v2(
 returns jsonb
 language plpgsql
 security definer
+set search_path = ''
 as $$
 declare
   updated_record jsonb;

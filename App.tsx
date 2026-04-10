@@ -44,6 +44,8 @@ const DatabaseSetup = lazy(() => import('./components/DatabaseSetup'));
 const ProductWizard = lazy(() => import('./components/ProductWizard'));
 import ThankYou from './components/ThankYou';
 import SpanishModule from './components/SpanishModule';
+const SchedulingPage = lazy(() => import('./components/SchedulingPage'));
+const SchedulingSuccess = lazy(() => import('./components/SchedulingSuccess'));
 
 type View = 'Dashboard' | 'Tasks' | 'Guides' | 'Members' | 'Profile' | 'Success' | 'Spanish' | 'Partners' | 'Admin';
 
@@ -370,33 +372,35 @@ const MainContent: React.FC = () => {
   };
 
   return (
-    <ToastProvider>
-      <ChecklistProvider userEmail={profile?.email}>
-        <MobileGuard>
-          {renderContent()}
-        </MobileGuard>
-      </ChecklistProvider>
-    </ToastProvider>
+    <ChecklistProvider userEmail={profile?.email}>
+      <MobileGuard>
+        {renderContent()}
+      </MobileGuard>
+    </ChecklistProvider>
   );
 };
 
 
 const App: React.FC = () => {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-navy-950 flex flex-col items-center justify-center">
-        <div className="w-12 h-12 border-4 border-white/5 border-t-gold-500 rounded-full animate-spin" />
-      </div>
-    }>
-      <Routes>
-        <Route path="/termos" element={<TermsOfUse />} />
-        <Route path="/privacidade" element={<PrivacyPolicy />} />
-        <Route path="/seja-parceiro" element={<BeAPartner />} />
-        <Route path="/quiz" element={<Quiz />} />
-        <Route path="/obrigado" element={<ThankYou />} />
-        <Route path="/*" element={<MainContent />} />
-      </Routes>
-    </Suspense>
+    <ToastProvider>
+      <Suspense fallback={
+        <div className="min-h-screen bg-navy-950 flex flex-col items-center justify-center">
+          <div className="w-12 h-12 border-4 border-white/5 border-t-gold-500 rounded-full animate-spin" />
+        </div>
+      }>
+        <Routes>
+          <Route path="/termos" element={<TermsOfUse />} />
+          <Route path="/privacidade" element={<PrivacyPolicy />} />
+          <Route path="/seja-parceiro" element={<BeAPartner />} />
+          <Route path="/quiz" element={<Quiz />} />
+          <Route path="/obrigado" element={<ThankYou />} />
+          <Route path="/agendamento" element={<SchedulingPage />} />
+          <Route path="/agendamento/sucesso" element={<SchedulingSuccess />} />
+          <Route path="/*" element={<MainContent />} />
+        </Routes>
+      </Suspense>
+    </ToastProvider>
   );
 };
 

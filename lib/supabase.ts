@@ -40,11 +40,14 @@ export const setOnDatabaseError = (callback: () => void) => {
 };
 
 function handleSupabaseError(error: any, table: string) {
-  // Códigos comuns de erro de schema: 42P01 (table missing), 42703 (column missing), 42501 (RLS permission)
-  if (error.code === '42P01' || error.code === '42703' || error.message?.includes('Could not find')) {
+  // Códigos comuns de erro de schema: 42P01 (table missing), 42703 (column missing)
+  // O código 42501 é RLS (permissão), não deve disparar o setup se o usuário apenas não for admin
+  const isSchemaError = error.code === '42P01' || error.code === '42703' || error.message?.includes('Could not find');
+
+  if (isSchemaError) {
     console.group(`⚠️ Supabase Schema Error (${table})`);
     console.error(error);
-    console.warn('As tabelas necessárias não foram encontradas ou permissões RLS estão incorretas.');
+    console.warn('As tabelas necessárias não foram encontradas ou colunas estão faltando.');
     console.groupEnd();
 
     if (onDatabaseErrorCallback) {
@@ -52,7 +55,9 @@ function handleSupabaseError(error: any, table: string) {
     }
     return;
   }
-  console.error(`Supabase ${table} Sync Error:`, error.message);
+
+  // Apenas loga para erros de permissão ou outros
+  console.error(`Supabase ${table} Sync Error:`, error.message, error.code === '42501' ? '(Possível falta de permissão Admin)' : '');
 }
 
 // --- AUTHENTICATION FUNCTIONS ---
@@ -451,6 +456,7 @@ export async function createTutorial(tutorial: any) {
     duration: tutorial.duration,
     thumbnail: tutorial.thumbnail,
     youtube_id: tutorial.video_url || tutorial.youtube_id, // Aceita ambos para compatibilidade
+    playlist: tutorial.playlist || 'Geral',
     is_dripped: tutorial.isDripped || false
   };
 
@@ -475,6 +481,7 @@ export async function updateTutorial(id: string, updates: any) {
   if (updates.duration) dataToUpdate.duration = updates.duration;
   if (updates.thumbnail) dataToUpdate.thumbnail = updates.thumbnail;
   if (updates.video_url || updates.youtube_id) dataToUpdate.youtube_id = updates.video_url || updates.youtube_id;
+  if (updates.playlist) dataToUpdate.playlist = updates.playlist;
   if (updates.isDripped !== undefined) dataToUpdate.is_dripped = updates.isDripped;
 
   const { data, error } = await supabase
@@ -870,4 +877,226 @@ export async function getQuizStats() {
   };
 
   return { started, completed, conversionRate, results };
+}
+
+// --- SCHEDULING FUNCTIONS ---
+
+/**
+ * Busca slots de consulta disponíveis (não reservados ou com reserva expirada)
+ */
+export async function getConsultationSlots() {
+  console.log('[Supabase Debug] Iniciando busca absoluta de slots...');
+  try {
+    // Busca SEM FILTROS para testar conectividade total
+    const { data: slots, error } = await supabase
+      .from('consultation_slots')
+      .select('*, consultation_bookings(id, payment_status, created_at)')
+      .order('start_time', { ascending: true });
+
+    if (error) {
+      console.error('[Supabase Error] Erro na busca raw:', error);
+      return [];
+    }
+
+    console.log('>>>> DADOS RECEBIDOS DO BANCO:', slots);
+
+    if (!slots || slots.length === 0) {
+      console.warn('[Supabase Warning] O banco retornou ARRAY VAZIO []. Verifique RLS.');
+      return [];
+    }
+
+    const now = new Date();
+    const EXPIRATION_MS = 20 * 60 * 1000;
+
+    const availableSlots = slots.filter(slot => {
+      // 1. Apenas slots futuros (ou de hoje)
+      const slotTime = new Date(slot.start_time);
+      if (slotTime < now && !isToday(slotTime)) return false;
+
+      const bookings = Array.isArray(slot.consultation_bookings) ? slot.consultation_bookings : [];
+      
+      const isPaid = bookings.some((b: any) => b.payment_status === 'paid');
+      if (isPaid) return false;
+
+      const hasRecentPending = bookings.some((b: any) => 
+        b.payment_status === 'pending' && 
+        b.created_at &&
+        (now.getTime() - new Date(b.created_at).getTime()) < EXPIRATION_MS
+      );
+      if (hasRecentPending) return false;
+
+      return true;
+    });
+
+    console.log('[Supabase Debug] Slots após filtragem local:', availableSlots.length);
+    return availableSlots;
+
+  } catch (err) {
+    console.error('[Supabase Critical Error]:', err);
+    return [];
+  }
+}
+
+function isToday(date: Date) {
+  const today = new Date();
+  return date.getDate() === today.getDate() &&
+    date.getMonth() === today.getMonth() &&
+    date.getFullYear() === today.getFullYear();
+}
+
+/**
+ * Cria um novo agendamento (inicialmente pendente)
+ */
+export async function createConsultationBooking(booking: {
+  slot_id: string;
+  name: string;
+  email: string;
+  whatsapp: string;
+}) {
+  const { data, error } = await supabase
+    .from('consultation_bookings')
+    .insert([booking])
+    .select()
+    .single();
+
+  if (error) {
+    handleSupabaseError(error, 'consultation_bookings (insert)');
+    return null;
+  }
+  return data;
+}
+
+/**
+ * Atualiza o status de pagamento de um agendamento
+ */
+export async function updateBookingPaymentStatus(id: string, status: 'paid' | 'cancelled', paymentId: string) {
+  const { data, error } = await supabase
+    .from('consultation_bookings')
+    .update({ 
+      payment_status: status,
+      payment_id: paymentId 
+    })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    handleSupabaseError(error, 'consultation_bookings (update)');
+    return null;
+  }
+
+  // Se o pagamento foi confirmado, marcamos o slot como reservado
+  if (status === 'paid' && data.slot_id) {
+    await supabase
+      .from('consultation_slots')
+      .update({ is_booked: true })
+      .eq('id', data.slot_id);
+  }
+
+  return data;
+}
+
+// --- ADMIN SCHEDULING FUNCTIONS ---
+
+export async function adminGetBookings() {
+  const { data, error } = await supabase
+    .from('consultation_bookings')
+    .select('*, consultation_slots(*)')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    handleSupabaseError(error, 'consultation_bookings (admin select)');
+    return [];
+  }
+  return data || [];
+}
+
+export async function adminGetAllSlots() {
+  const { data, error } = await supabase
+    .from('consultation_slots')
+    .select('*')
+    .order('start_time', { ascending: true });
+
+  if (error) {
+    handleSupabaseError(error, 'consultation_slots (admin select)');
+    return [];
+  }
+  return data || [];
+}
+
+export async function adminCreateSlot(slot: { start_time: string; end_time: string; price: number }) {
+  const { data, error } = await supabase
+    .from('consultation_slots')
+    .insert([slot])
+    .select()
+    .single();
+
+  if (error) {
+    handleSupabaseError(error, 'consultation_slots (insert)');
+    return null;
+  }
+  return data;
+}
+
+export async function adminCreateBulkSlots(slots: { start_time: string; end_time: string; price: number }[]) {
+  const { data, error } = await supabase
+    .from('consultation_slots')
+    .insert(slots)
+    .select();
+
+  if (error) {
+    handleSupabaseError(error, 'consultation_slots (bulk insert)');
+    return null;
+  }
+  return data;
+}
+
+export async function adminDeleteSlot(id: string) {
+  const { error } = await supabase
+    .from('consultation_slots')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    handleSupabaseError(error, 'consultation_slots (delete)');
+    return false;
+  }
+  return true;
+}
+
+export async function adminDeleteAllUnbookedSlots() {
+  const { error } = await supabase
+    .from('consultation_slots')
+    .delete()
+    .eq('is_booked', false);
+
+  if (error) {
+    handleSupabaseError(error, 'consultation_slots (delete all unbooked)');
+    return false;
+  }
+  return true;
+}
+
+export async function adminRescheduleBooking(bookingId: string, oldSlotId: string | null, newSlotId: string) {
+  // 1. Free the old slot if it exists
+  if (oldSlotId) {
+    await supabase.from('consultation_slots').update({ is_booked: false }).eq('id', oldSlotId);
+  }
+  
+  // 2. Mark the new slot as booked
+  await supabase.from('consultation_slots').update({ is_booked: true }).eq('id', newSlotId);
+
+  // 3. Update the booking with the new slot
+  const { data, error } = await supabase
+    .from('consultation_bookings')
+    .update({ slot_id: newSlotId })
+    .eq('id', bookingId)
+    .select()
+    .single();
+
+  if (error) {
+    handleSupabaseError(error, 'consultation_bookings (reschedule)');
+    return false;
+  }
+  return true;
 }
