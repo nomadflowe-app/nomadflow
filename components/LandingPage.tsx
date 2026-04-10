@@ -463,10 +463,16 @@ const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth }) => {
 
           <div className="mt-16 text-center space-y-6 bg-white/5 p-8 md:p-12 rounded-3xl border border-white/10 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-brand-yellow/10 rounded-full blur-[80px]" />
-            <div className="flex justify-center -space-x-4 relative z-10">
-              {[1, 2, 3].map(i => (
-                <img key={i} src={`https://picsum.photos/seed/${i + 10}/100`} className="w-12 h-12 rounded-full border-4 border-navy-950 object-cover" alt="User" />
-              ))}
+            <div className="flex justify-center -space-x-3 relative z-10">
+              <div className="w-14 h-14 bg-navy-900 border-4 border-navy-950 rounded-full flex items-center justify-center text-brand-yellow shadow-lg z-20">
+                <Globe className="w-6 h-6" />
+              </div>
+              <div className="w-14 h-14 bg-brand-yellow border-4 border-navy-950 rounded-full flex items-center justify-center text-navy-950 shadow-lg z-30 scale-110">
+                <Plane className="w-6 h-6" />
+              </div>
+              <div className="w-14 h-14 bg-navy-900 border-4 border-navy-950 rounded-full flex items-center justify-center text-brand-yellow shadow-lg z-20">
+                <FileCheck className="w-6 h-6" />
+              </div>
             </div>
             <div className="space-y-4 relative z-10">
               <h4 className="text-2xl md:text-3xl font-black text-white tracking-tight">Pronto para dar o próximo passo?</h4>
@@ -480,7 +486,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth }) => {
                 className="inline-flex justify-center items-center gap-2 px-8 py-4 bg-brand-yellow text-navy-950 font-black uppercase tracking-widest rounded-2xl transition-all shadow-[0_0_30px_rgba(255,204,0,0.2)] hover:bg-white hover:scale-[1.02] active:scale-95 group"
               >
                 <CheckCircle2 className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                Sou Qualificado? (Teste)
+                Sou Qualificado?
               </Link>
               <Link 
                 to="/agendamento"
