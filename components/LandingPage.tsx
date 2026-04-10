@@ -461,25 +461,35 @@ const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth }) => {
             />
           </div>
 
-          <div className="mt-16 text-center space-y-6 bg-white/5 p-8 rounded-3xl border border-white/10">
-            <div className="flex justify-center -space-x-4">
+          <div className="mt-16 text-center space-y-6 bg-white/5 p-8 md:p-12 rounded-3xl border border-white/10 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-brand-yellow/10 rounded-full blur-[80px]" />
+            <div className="flex justify-center -space-x-4 relative z-10">
               {[1, 2, 3].map(i => (
                 <img key={i} src={`https://picsum.photos/seed/${i + 10}/100`} className="w-12 h-12 rounded-full border-4 border-navy-950 object-cover" alt="User" />
               ))}
             </div>
-            <div className="space-y-2">
-              <h4 className="text-xl font-bold text-white">Ainda tem dúvidas?</h4>
-              <p className="text-blue-100/60 font-medium">Nossa equipe está pronta para te ajudar agora mesmo.</p>
+            <div className="space-y-4 relative z-10">
+              <h4 className="text-2xl md:text-3xl font-black text-white tracking-tight">Pronto para dar o próximo passo?</h4>
+              <p className="text-blue-100/70 font-medium max-w-xl mx-auto leading-relaxed">
+                Você pode agendar uma orientação estratégica em vídeo conosco ou fazer o teste rápido para descobrir agora mesmo se você é qualificado para o Visto de Nômade na Espanha.
+              </p>
             </div>
-            <a 
-              href="https://wa.me/5594984342484" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-green-500 hover:bg-green-600 text-white font-black uppercase tracking-widest rounded-2xl transition-all shadow-xl shadow-green-900/20 active:scale-95 group"
-            >
-              <MessageCircle className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-              Falar no WhatsApp
-            </a>
+            <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4 relative z-10">
+              <Link 
+                to="/quiz"
+                className="inline-flex justify-center items-center gap-2 px-8 py-4 bg-brand-yellow text-navy-950 font-black uppercase tracking-widest rounded-2xl transition-all shadow-[0_0_30px_rgba(255,204,0,0.2)] hover:bg-white hover:scale-[1.02] active:scale-95 group"
+              >
+                <CheckCircle2 className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                Sou Qualificado? (Teste)
+              </Link>
+              <Link 
+                to="/agendamento"
+                className="inline-flex justify-center items-center gap-2 px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-black uppercase tracking-widest rounded-2xl transition-all hover:scale-[1.02] active:scale-95 group"
+              >
+                <MessageCircle className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+                Agendar Orientação
+              </Link>
+            </div>
           </div>
 
         </div>
