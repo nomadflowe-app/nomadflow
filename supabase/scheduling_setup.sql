@@ -35,7 +35,7 @@ create policy "Allow admins full access to slots" on public.consultation_slots
 -- RLS for Consultation Bookings
 alter table public.consultation_bookings enable row level security;
 create policy "Allow insert for anyone (booking flow)" on public.consultation_bookings
-  for insert with check (true);
+  for insert with check (payment_status = 'pending');
 create policy "Allow admins full access to bookings" on public.consultation_bookings
   using (
     exists (

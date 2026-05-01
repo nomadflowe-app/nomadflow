@@ -45,7 +45,8 @@ import {
     adminCreateBulkSlots,
     adminDeleteSlot,
     adminDeleteAllUnbookedSlots,
-    adminRescheduleBooking
+    adminRescheduleBooking,
+    adminDeleteBooking
 } from '../lib/supabase';
 import { QUESTIONS } from './QuizQuestions';
 import { useToast } from '../context/ToastContext';
@@ -790,6 +791,24 @@ export const AdminArea: React.FC = () => {
                                                     }`}>
                                                         {booking.payment_status === 'paid' ? 'Pago' : 'Pendente'}
                                                     </span>
+                                                    {booking.payment_status !== 'paid' && (
+                                                        <button 
+                                                            onClick={async () => {
+                                                                if (window.confirm('Remover este agendamento pendente e liberar a vaga novamente?')) {
+                                                                    const success = await adminDeleteBooking(booking.id, booking.slot_id);
+                                                                    if (success) {
+                                                                        showToast('Agendamento removido e vaga liberada.', 'success');
+                                                                        loadData();
+                                                                    } else {
+                                                                        showToast('Erro ao remover agendamento.', 'error');
+                                                                    }
+                                                                }
+                                                            }}
+                                                            className="text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white transition-all"
+                                                        >
+                                                            Remover e Liberar
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>

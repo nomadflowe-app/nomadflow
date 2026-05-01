@@ -302,9 +302,15 @@ drop policy if exists "quiz_leads_select_v4" on public.quiz_leads;
 drop policy if exists "quiz_leads_update_v4" on public.quiz_leads;
 
 -- Novas Políticas (Permissivas para Quiz mas sem usar \`true\` diretamente para evitar avisos)
-create policy "quiz_leads_insert_v4" on public.quiz_leads for insert with check (auth.role() in ('anon', 'authenticated'));
-create policy "quiz_leads_select_v4" on public.quiz_leads for select using (auth.role() in ('anon', 'authenticated'));
-create policy "quiz_leads_update_v4" on public.quiz_leads for update using (auth.role() in ('anon', 'authenticated')) with check (auth.role() in ('anon', 'authenticated'));
+-- Novas Políticas (SENSITIVE FIX: Apenas dono ou admin vê leads)
+create policy "quiz_leads_select_v5" on public.quiz_leads for select 
+   using (auth.uid() = user_id OR (exists (select 1 from public.profiles where user_id = auth.uid() and is_admin = true)));
+
+create policy "quiz_leads_insert_v5" on public.quiz_leads for insert 
+   with check (auth.role() in ('anon', 'authenticated'));
+
+create policy "quiz_leads_update_v5" on public.quiz_leads for update 
+   using (auth.uid() = user_id OR auth.role() = 'anon');
 
 -- CONSULTATION_SLOTS Policies
 drop policy if exists "Allow public read for available slots" on public.consultation_slots;
@@ -384,14 +390,16 @@ create policy "Enable update for all" on public.quiz_leads for update using (aut
 CREATE OR REPLACE FUNCTION public.protect_admin_column()
 RETURNS TRIGGER AS $$
 BEGIN
-    IF NEW.is_admin IS DISTINCT FROM OLD.is_admin THEN
-        IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE user_id = auth.uid() AND is_admin = true) THEN
+    -- Impede a auto-promoção: Apenas administradores já existentes ou o sistema podem alterar is_admin ou tier
+    IF NEW.is_admin IS DISTINCT FROM OLD.is_admin OR NEW.tier IS DISTINCT FROM OLD.tier THEN
+        IF NOT (EXISTS (SELECT 1 FROM public.profiles WHERE user_id = auth.uid() AND is_admin = true) OR auth.role() = 'service_role') THEN
             NEW.is_admin := OLD.is_admin;
+            NEW.tier := OLD.tier;
         END IF;
     END IF;
     RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = 'public';
 
 DROP TRIGGER IF EXISTS on_profile_update_protect_admin ON public.profiles;
 CREATE TRIGGER on_profile_update_protect_admin

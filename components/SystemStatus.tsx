@@ -19,7 +19,8 @@ export const SystemStatus: React.FC<SystemStatusProps> = ({ isOpen, onClose }) =
     const [checks, setChecks] = useState<StatusItem[]>([
         { id: 'db', label: 'Banco de Dados (Supabase)', status: 'loading' },
         { id: 'auth', label: 'Autenticação (Auth)', status: 'loading' },
-        { id: 'webhook', label: 'Webhook (Kiwify)', status: 'loading' },
+        { id: 'payment', label: 'Pagamento (Platform)', status: 'loading' },
+        { id: 'webhook', label: 'Webhook (Platform)', status: 'loading' },
     ]);
 
     useEffect(() => {
@@ -54,22 +55,40 @@ export const SystemStatus: React.FC<SystemStatusProps> = ({ isOpen, onClose }) =
             updateCheck('auth', 'error', error.message);
         }
 
-        // 3. Check Hub (Kiwify Function)
+        // 3. Check Payment Function (create-platform-payment)
         try {
             const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.replace(/\/$/, '');
             if (!supabaseUrl) throw new Error('VITE_SUPABASE_URL não definido');
 
-            const response = await fetch(`${supabaseUrl}/functions/v1/kiwify-webhook`, { method: 'OPTIONS' });
+            const response = await fetch(`${supabaseUrl}/functions/v1/create-platform-payment`, { method: 'OPTIONS' });
 
-            if (response.ok || response.status === 405) { // 405 Method Not Allowed is fine for OPTIONS if CORS is ok
-                updateCheck('webhook', 'success', 'Edge Function operacional.');
+            if (response.ok || response.status === 405) {
+                updateCheck('payment', 'success', 'Função de checkout operacional.');
             } else if (response.status === 404) {
-                updateCheck('webhook', 'error', 'Função não encontrada (404). Realize o deploy no Supabase.');
+                updateCheck('payment', 'error', 'Função não encontrada (404).');
             } else {
-                updateCheck('webhook', 'error', `Erro no endpoint (Status: ${response.status})`);
+                updateCheck('payment', 'error', `Erro (Status: ${response.status})`);
             }
         } catch (error: any) {
-            updateCheck('webhook', 'error', 'Falha de rede ou CORS. A função está publicada?');
+            updateCheck('payment', 'error', 'Falha de rede.');
+        }
+
+        // 4. Check Webhook Function (mp-platform-webhook)
+        try {
+            const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.replace(/\/$/, '');
+            if (!supabaseUrl) throw new Error('VITE_SUPABASE_URL não definido');
+
+            const response = await fetch(`${supabaseUrl}/functions/v1/mp-platform-webhook`, { method: 'OPTIONS' });
+
+            if (response.ok || response.status === 405) {
+                updateCheck('webhook', 'success', 'Webhook operacional.');
+            } else if (response.status === 404) {
+                updateCheck('webhook', 'error', 'Webhook não encontrado (404).');
+            } else {
+                updateCheck('webhook', 'error', `Erro (Status: ${response.status})`);
+            }
+        } catch (error: any) {
+            updateCheck('webhook', 'error', 'Falha de rede.');
         }
     };
 
@@ -103,6 +122,7 @@ export const SystemStatus: React.FC<SystemStatusProps> = ({ isOpen, onClose }) =
                                             }`}>
                                             {check.id === 'db' && <Server className="w-5 h-5" />}
                                             {check.id === 'auth' && <Shield className="w-5 h-5" />}
+                                            {check.id === 'payment' && <Activity className="w-5 h-5" />}
                                             {check.id === 'webhook' && <Activity className="w-5 h-5" />}
                                         </div>
                                         <div>

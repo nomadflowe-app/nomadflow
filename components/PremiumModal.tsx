@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check, Star, ShieldCheck, Flame } from 'lucide-react';
 
 interface PremiumModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onUpgrade: (priceId: string) => void;
+  onUpgrade: (priceId: string, couponCode?: string) => void;
   isForced?: boolean;
   onLogout?: () => void;
 }
@@ -28,6 +28,9 @@ const PLANS = [
 ];
 
 const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, onUpgrade, isForced = false, onLogout }) => {
+  const [loading, setLoading] = useState(false);
+  const [couponCode, setCouponCode] = useState('');
+
   if (!isOpen) return null;
 
   const currentPlan = PLANS[0];
@@ -129,19 +132,44 @@ const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, onUpgrade,
                 <span className="text-[9px] text-white/20 font-bold uppercase tracking-widest leading-none">ou {currentPlan.price} {currentPlan.period}</span>
               </div>
             </div>
+
+            <div className="space-y-2">
+              <span className="text-[10px] text-white/40 font-bold uppercase tracking-[0.2em] px-2">Possui Cupom?</span>
+              <input 
+                type="text" 
+                value={couponCode} 
+                onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                placeholder="CÓDIGO (Opcional)" 
+                className="w-full bg-navy-950/50 border border-white/10 rounded-xl px-4 py-3 text-white font-mono text-sm focus:outline-none focus:border-brand-yellow/50 transition-colors uppercase placeholder:text-white/20"
+              />
+            </div>
           </div>
 
           <div className="space-y-5 mt-10">
-            <a
-              href={currentPlan.checkoutUrl}
-              onClick={() => onUpgrade(currentPlan.priceId)}
-              className="w-full py-5 bg-[#82c91e] text-white rounded-2xl font-black text-lg uppercase tracking-[0.1em] shadow-[0_20px_40px_rgba(130,201,30,0.3)] hover:shadow-[0_25px_50px_rgba(130,201,30,0.4)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 overflow-hidden group"
+            <button
+              onClick={async () => {
+                setLoading(true);
+                await onUpgrade(currentPlan.priceId, couponCode);
+                setLoading(false);
+              }}
+              disabled={loading}
+              className="w-full py-5 bg-[#009ee3] text-white rounded-2xl font-black text-lg uppercase tracking-[0.1em] shadow-[0_20px_40px_rgba(0,158,227,0.3)] hover:shadow-[0_25px_50px_rgba(0,158,227,0.4)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Star className="w-5 h-5 fill-white animate-pulse" />
-              Assinar Agora
-            </a>
-            <p className="text-[9px] text-center text-white/20 font-bold uppercase tracking-[0.2em]">
-              Ambiente 100% Seguro via Kiwify
+              {loading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                  Gerando Link...
+                </>
+              ) : (
+                <>
+                  <Star className="w-5 h-5 fill-white animate-pulse" />
+                  Assinar Agora
+                </>
+              )}
+            </button>
+            <p className="text-[9px] text-center text-white/20 font-bold uppercase tracking-[0.2em] flex items-center justify-center gap-2">
+              <ShieldCheck className="w-3 h-3" />
+              Ambiente 100% Seguro via Mercado Pago
             </p>
           </div>
 

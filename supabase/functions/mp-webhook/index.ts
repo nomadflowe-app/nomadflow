@@ -12,6 +12,7 @@ import { createClient } from 'supabase'
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? ''
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 const MP_ACCESS_TOKEN = Deno.env.get('MP_ACCESS_TOKEN') ?? ''
+const MP_WEBHOOK_TOKEN = Deno.env.get('MP_WEBHOOK_TOKEN') ?? '' // Novo: Token de segurança
 const CALENDAR_WEBHOOK_URL = Deno.env.get('CALENDAR_WEBHOOK_URL') ?? 'https://script.google.com/macros/s/AKfycbxMy7zj92KasumrVa-X_J5piKy_WktVW-O9pjAcPZ0oDNJj_lyraopCwlmpKDYsqw4fyg/exec'
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') ?? ''
 const ADMIN_EMAIL = 'nomadflow.es@gmail.com'
@@ -86,6 +87,7 @@ async function sendConfirmationEmail(booking: any, slot: any, meetLink: string |
         body: JSON.stringify({
             from: FROM_EMAIL,
             to: [booking.email],
+            bcc: [ADMIN_EMAIL],
             subject: '✅ Agendamento Confirmado — Orientação Estratégica NomadFlow',
             html: `
                 <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;">
@@ -157,6 +159,14 @@ serve(async (req: Request) => {
 
     try {
         const url = new URL(req.url)
+        const queryToken = url.searchParams.get('token') || ''
+        
+        // Se MP_WEBHOOK_TOKEN estiver configurado, valida a origem
+        if (MP_WEBHOOK_TOKEN && queryToken !== MP_WEBHOOK_TOKEN) {
+            console.error(`[mp-webhook] Unauthorized access attempt. Received: ${queryToken}`)
+            return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders })
+        }
+
         let paymentId: string | null = null
         let topic = url.searchParams.get('topic') ?? ''
 

@@ -110,6 +110,7 @@ export async function getUserProfile(userId: string) {
     // Mapeia do formato do banco (snake_case) para o formato do app (camelCase)
     if (data) {
       return {
+        id: userId, // Garante que o ID do Auth seja passado adiante
         fullName: data.full_name,
         email: data.email,
         familyContext: data.family_context || 'solo',
@@ -711,20 +712,38 @@ export async function createNotification(notification: { title: string; message:
 // --- QUIZ LEADS FUNCTIONS ---
 
 export async function saveQuizLeadInitial(lead: { name: string; email: string; phone: string; user_id?: string }) {
-  const { data, error } = await supabase
-    .from('quiz_leads')
-    .insert([{
-      ...lead,
-      status: 'started'
-    }])
-    .select()
-    .single();
+  try {
+    // 1. Tenta usar o RPC seguro
+    const { data: rpcData, error: rpcError } = await supabase.rpc('start_quiz_lead_secure', {
+      p_name: lead.name,
+      p_email: lead.email,
+      p_phone: lead.phone,
+      p_user_id: lead.user_id || null
+    });
 
-  if (error) {
-    handleSupabaseError(error, 'quiz_leads (insert)');
+    if (!rpcError && rpcData) {
+      return rpcData;
+    }
+
+    // 2. Fallback normal (pode falhar devido a RLS restrito de Select)
+    const { data, error } = await supabase
+      .from('quiz_leads')
+      .insert([{
+        ...lead,
+        status: 'started'
+      }])
+      .select()
+      .maybeSingle();
+
+    if (error) {
+      handleSupabaseError(error, 'quiz_leads (insert)');
+      return null;
+    }
+    return data;
+  } catch (err) {
+    console.error('Failed to start quiz lead:', err);
     return null;
   }
-  return data;
 }
 
 export async function updateQuizLeadFinal(id: string, result: string, score: number, answers?: any[]) {
@@ -1096,6 +1115,25 @@ export async function adminRescheduleBooking(bookingId: string, oldSlotId: strin
 
   if (error) {
     handleSupabaseError(error, 'consultation_bookings (reschedule)');
+    return false;
+  }
+  return true;
+}
+
+export async function adminDeleteBooking(bookingId: string, slotId: string | null) {
+  // 1. Free the slot if it exists
+  if (slotId) {
+    await supabase.from('consultation_slots').update({ is_booked: false }).eq('id', slotId);
+  }
+
+  // 2. Delete the booking
+  const { error } = await supabase
+    .from('consultation_bookings')
+    .delete()
+    .eq('id', bookingId);
+
+  if (error) {
+    handleSupabaseError(error, 'consultation_bookings (delete)');
     return false;
   }
   return true;

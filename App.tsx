@@ -189,7 +189,7 @@ const MainContent: React.FC = () => {
     localStorage.setItem('nomad_show_wizard', 'true');
   };
 
-  const handleUpgrade = async (priceId: string) => {
+  const handleUpgrade = async (priceId: string, couponCode?: string) => {
     let userEmail = profile?.email;
 
     if (!userEmail) {
@@ -208,7 +208,57 @@ const MainContent: React.FC = () => {
       return;
     }
 
-    // O redirecionamento agora é tratado pelo link direto no PremiumModal.
+    // O redirecionamento agora será tratado pela nova função do Mercado Pago.
+    try {
+      const targetUserId = profile?.id || currentUser?.id;
+      
+      if (!targetUserId) {
+        alert('Usuário não identificado. Por favor, faça login novamente.');
+        return;
+      }
+
+      console.log('[Payment] Iniciando checkout para:', {
+        user_id: targetUserId,
+        email: userEmail
+      });
+
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      const response = await fetch(`${supabaseUrl}/functions/v1/create-platform-payment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': anonKey,
+          'Authorization': `Bearer ${anonKey}`
+        },
+        body: JSON.stringify({
+          user_id: targetUserId,
+          name: profile?.fullName || userEmail.split('@')[0] || 'Usuário',
+          email: userEmail,
+          coupon: couponCode
+        })
+      });
+
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        console.error('Edge Function Error:', responseData);
+        alert(`Erro ao processar o pagamento: ${responseData.error || responseData.message || 'Erro no servidor'}`);
+        return;
+      }
+      
+      const data = responseData;
+
+      if (data?.init_point) {
+        window.location.href = data.init_point; // Redireciona para o Checkout Pro
+      } else {
+        alert(data?.error || 'Erro ao gerar link de pagamento do Mercado Pago.');
+      }
+    } catch (err: any) {
+      console.error('Error mapping payment:', err);
+      alert('Erro de conexão ao gerar link de pagamento. Verifique sua internet.');
+    }
   };
 
   const renderContent = () => {

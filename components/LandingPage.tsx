@@ -113,15 +113,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth }) => {
           </p>
 
           <div className="flex flex-col items-center md:items-start gap-4">
-            <a
-              href="https://pay.kiwify.com.br/1CE7oz8"
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              onClick={onOpenAuth}
               className="w-full md:w-auto px-8 py-4 md:py-5 bg-brand-yellow text-navy-950 rounded-2xl font-black text-base md:text-lg uppercase tracking-widest shadow-[0_0_30px_rgba(255,204,0,0.3)] hover:shadow-[0_0_50px_rgba(255,204,0,0.5)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 group"
             >
               Começar agora
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </a>
+            </button>
             <p className="text-[10px] md:text-xs text-white/40 font-bold uppercase tracking-widest flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-brand-yellow" />
               Reembolso garantido em até 7 dias, risco zero.
@@ -271,14 +269,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onOpenAuth }) => {
               </div>
             </div>
 
-            <a
-              href="https://pay.kiwify.com.br/1CE7oz8"
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              onClick={onOpenAuth}
               className="w-full py-4 mt-4 bg-brand-yellow text-navy-950 rounded-xl font-black uppercase tracking-widest hover:bg-white hover:scale-[1.02] transition-all flex items-center justify-center"
             >
               Escolher NomadFlow
-            </a>
+            </button>
           </motion.div>
 
         </div>
