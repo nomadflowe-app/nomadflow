@@ -5,7 +5,7 @@ import { X, Check, Star, ShieldCheck, Flame } from 'lucide-react';
 interface PremiumModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onUpgrade: (priceId: string, couponCode?: string) => void;
+  onUpgrade: (priceId: string) => void;
   isForced?: boolean;
   onLogout?: () => void;
 }
@@ -14,9 +14,9 @@ const PLANS = [
   {
     id: 'anual',
     name: 'Elite Anual',
-    price: 'R$ 649,00',
+    price: 'R$ 1.159,00',
     period: 'à vista',
-    installments: '10x de R$ 78,00',
+    installments: '12x no cartão',
     description: 'O melhor custo-benefício para sua jornada.',
     icon: <Flame className="w-6 h-6" />,
     color: 'from-brand-yellow/20 to-brand-yellow/5',
@@ -29,7 +29,6 @@ const PLANS = [
 
 const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, onUpgrade, isForced = false, onLogout }) => {
   const [loading, setLoading] = useState(false);
-  const [couponCode, setCouponCode] = useState('');
 
   if (!isOpen) return null;
 
@@ -62,9 +61,6 @@ const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, onUpgrade,
 
           {/* Single Plan Card */}
           <div className="relative group max-w-sm">
-            <div className="absolute -top-3 left-8 bg-brand-yellow text-navy-950 text-[10px] font-black px-5 py-1.5 rounded-full uppercase tracking-widest shadow-xl z-10 whitespace-nowrap">
-              Valor promocional
-            </div>
 
             <div className="p-6 md:p-8 rounded-[2rem] border-2 border-brand-yellow bg-white/5 backdrop-blur-sm shadow-[0_0_40px_rgba(250,204,21,0.15)] space-y-5">
               <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-brand-yellow">
@@ -133,23 +129,13 @@ const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, onUpgrade,
               </div>
             </div>
 
-            <div className="space-y-2">
-              <span className="text-[10px] text-white/40 font-bold uppercase tracking-[0.2em] px-2">Possui Cupom?</span>
-              <input 
-                type="text" 
-                value={couponCode} 
-                onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                placeholder="CÓDIGO (Opcional)" 
-                className="w-full bg-navy-950/50 border border-white/10 rounded-xl px-4 py-3 text-white font-mono text-sm focus:outline-none focus:border-brand-yellow/50 transition-colors uppercase placeholder:text-white/20"
-              />
-            </div>
           </div>
 
           <div className="space-y-5 mt-10">
             <button
               onClick={async () => {
                 setLoading(true);
-                await onUpgrade(currentPlan.priceId, couponCode);
+                await onUpgrade(currentPlan.priceId);
                 setLoading(false);
               }}
               disabled={loading}

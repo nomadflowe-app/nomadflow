@@ -54,49 +54,9 @@ serve(async (req: Request) => {
 
         const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
         
-        let unitPrice = 649.00; // Preço base padrão
-
-        // Lógica de Cupom e transição de preço (Cenário A)
-        // O preço base é 649, se bater os 10 do NOMAD10, o preço base vira 1259.
-        
-        // Primeiro, vamos verificar o estado do cupom NOMAD10 (mesmo se o usuário não enviou o cupom, 
-        // nós usamos ele para saber se a promoção acabou e o preço deve ir para 1259).
-        const { data: nomadCoupon } = await supabase
-            .from('coupons')
-            .select('used_count, max_uses')
-            .eq('code', 'NOMAD10')
-            .single()
-
-        let promotionEnded = false;
-        if (nomadCoupon && nomadCoupon.used_count >= nomadCoupon.max_uses) {
-            promotionEnded = true;
-            unitPrice = 1259.00; // Promoção acabou, novo preço base
-        }
+        let unitPrice = 1159.00; // Novo preço base
 
         let appliedCouponCode = null;
-
-        if (coupon && !promotionEnded) {
-            const normalizedCoupon = coupon.trim().toUpperCase();
-            const { data: couponData, error: couponError } = await supabase
-                .from('coupons')
-                .select('*')
-                .eq('code', normalizedCoupon)
-                .eq('active', true)
-                .single()
-
-            if (!couponError && couponData) {
-                if (couponData.used_count < couponData.max_uses) {
-                    const discountMultiplier = (100 - couponData.discount_percent) / 100;
-                    unitPrice = unitPrice * discountMultiplier;
-                    appliedCouponCode = normalizedCoupon;
-                    console.log(`[create-platform-payment] Cupom ${appliedCouponCode} aplicado! Novo preço: ${unitPrice}`);
-                } else {
-                    console.log(`[create-platform-payment] Cupom ${normalizedCoupon} esgotado.`);
-                }
-            } else {
-                console.log(`[create-platform-payment] Cupom ${normalizedCoupon} inválido ou inativo.`);
-            }
-        }
 
         const preference = {
             items: [
