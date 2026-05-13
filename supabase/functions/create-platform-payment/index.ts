@@ -54,7 +54,7 @@ serve(async (req: Request) => {
 
         const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
         
-        let unitPrice = 1159.00; // Novo preço base
+        let unitPrice = 1559.00; // Novo preço base
 
         let appliedCouponCode = null;
 

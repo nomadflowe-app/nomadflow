@@ -14,7 +14,7 @@ const PLANS = [
   {
     id: 'anual',
     name: 'Elite Anual',
-    price: 'R$ 1.159,00',
+    price: 'R$ 1.559,00',
     period: 'à vista',
     installments: '12x no cartão',
     description: 'O melhor custo-benefício para sua jornada.',
